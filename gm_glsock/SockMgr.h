@@ -20,7 +20,7 @@ private:
 	boost::thread m_Thread;
 	Mutex_t m_Mutex;
 	std::vector<GLSock::ISock*> m_vecSocks;
-	std::stack<boost::function<void(lua_State*)>> m_Callbacks;
+	std::stack<boost::function<void(lua_State*)> > m_Callbacks;
 
 public:
 	CSockMgr(void);
