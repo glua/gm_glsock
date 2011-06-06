@@ -21,9 +21,24 @@ CSockMgr::~CSockMgr( void )
 	
 	m_Mutex.unlock();
 
-	StopThread();
+	for(;;)
+	{
+		// TODO: Use scoped lock maybe?
+
+		m_Mutex.lock();
+		if( m_vecSocks.empty() )
+		{
+			m_Mutex.unlock();
+			break;
+		}
+		m_Mutex.unlock();
+
+		// Poll until the socks have been cleaned up.
+		m_IOService.poll_one();
+	}
 }
 
+/*
 bool CSockMgr::StartThread()
 {
 	m_Thread = boost::thread( boost::bind(&boost::asio::io_service::run, &m_IOService) );
@@ -40,6 +55,7 @@ bool CSockMgr::StopThread()
 
 	return true;
 }
+*/
 
 GLSock::ISock* CSockMgr::CreateAcceptorSock(lua_State* L)
 {

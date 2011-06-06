@@ -26,8 +26,10 @@ public:
 	CSockMgr(void);
 	~CSockMgr(void);
 
+	/*
 	bool StartThread();
 	bool StopThread();
+	*/
 
 	GLSock::ISock* CreateAcceptorSock(lua_State* L);
 	GLSock::ISock* CreateTCPSock(lua_State* L);

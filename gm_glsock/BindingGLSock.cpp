@@ -376,6 +376,9 @@ static int Close(lua_State* L)
 
 static int Poll(lua_State* L)
 {
+	if( !L )
+		return 0;
+
 	g_pSockMgr->Poll(L);
 	return 0;
 }
@@ -436,7 +439,13 @@ void Startup( lua_State* L )
 
 void Cleanup( lua_State* L )
 {
-	//g_pSockMgr->StopThread();
+	ILuaObject* hook = Lua()->GetGlobal("hook");
+	ILuaObject* hook_Remove = hook->GetMember("Remove");
+
+	hook_Remove->Push();
+	Lua()->Push("Think");
+	Lua()->Push("GLSockPolling");
+	Lua()->Call(2);
 }
 
 } // GLSock
