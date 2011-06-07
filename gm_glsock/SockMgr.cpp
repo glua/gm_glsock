@@ -65,9 +65,9 @@ GLSock::ISock* CSockMgr::CreateAcceptorSock(lua_State* L)
 	return pSock;
 }
 
-GLSock::ISock* CSockMgr::CreateTCPSock( lua_State* L )
+GLSock::ISock* CSockMgr::CreateTCPSock( lua_State* L, bool bOpen )
 {
-	GLSock::CSockTCP* pSock = new GLSock::CSockTCP(m_IOService, L);
+	GLSock::CSockTCP* pSock = new GLSock::CSockTCP(m_IOService, L, bOpen);
 	m_vecSocks.push_back(pSock);
 
 	return pSock;

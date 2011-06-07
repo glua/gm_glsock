@@ -52,6 +52,7 @@ CSockAcceptor::CSockAcceptor( IOService_t& IOService_t, lua_State* pLua ) :
 	m_nReferences = 0;
 
 	m_Sock.open(boost::asio::ip::tcp::v4());
+	m_Sock.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
 }
 
 void cbBind(Callback_t Callback, ISock* pHandle, int iErrorMsg, lua_State* L) // Callback(Handle, Error)
@@ -80,13 +81,13 @@ bool CSockAcceptor::Bind( CEndpoint& Endpoint, Callback_t Callback )
 
 		if( ec )
 		{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 			Lua()->Msg("GLSock(Acceptor): Unable to bind to %s:%u\n", ep.address().to_string().c_str(), ep.port());
 #endif
 		}
 		else
 		{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 			Lua()->Msg("GLSock(Acceptor): Bound to %s:%u\n", ep.address().to_string().c_str(), ep.port());
 #endif
 		}
@@ -95,7 +96,7 @@ bool CSockAcceptor::Bind( CEndpoint& Endpoint, Callback_t Callback )
 	}
 	catch (boost::exception& ex)
 	{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 		Lua()->Msg("GLSock(Acceptor): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
 		bResult = false;
@@ -128,7 +129,7 @@ bool CSockAcceptor::Listen( int iBacklog, Callback_t Callback )
 
 		if( ec )
 		{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 			Lua()->Msg("GLSock(Acceptor): %s\n", ec.message().c_str());
 #endif
 		}
@@ -137,7 +138,7 @@ bool CSockAcceptor::Listen( int iBacklog, Callback_t Callback )
 	}
 	catch (boost::exception& ex)
 	{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 		Lua()->Msg("GLSock(Acceptor): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
 		bResult = false;
@@ -148,7 +149,7 @@ bool CSockAcceptor::Listen( int iBacklog, Callback_t Callback )
 
 bool CSockAcceptor::Accept( Callback_t Callback )
 {
-	CSockTCP* pSock = (CSockTCP*)g_pSockMgr->CreateTCPSock(L);
+	CSockTCP* pSock = (CSockTCP*)g_pSockMgr->CreateTCPSock(L, false);
 	
 	m_Sock.async_accept(pSock->Socket(), 
 		boost::bind(&CSockAcceptor::OnAccept, this, Callback, pSock, boost::asio::placeholders::error));
@@ -173,7 +174,7 @@ bool CSockAcceptor::Close( void )
 	}
 	catch (boost::exception& ex)
 	{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 		Lua()->Msg("GLSock(Acceptor): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
 		bResult = false;
@@ -226,7 +227,7 @@ void CSockAcceptor::OnAccept( Callback_t Callback, CSockTCP* pSock, const boost:
 {
 	if( ec )
 	{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 		Lua()->Msg("GLSock(Acceptor): %s\n", ec.message().c_str());
 #endif
 		g_pSockMgr->RemoveSock(pSock);
@@ -243,13 +244,14 @@ void CSockAcceptor::OnDestroy( void )
 }
 
 // TCP Sock
-CSockTCP::CSockTCP( IOService_t& IOService, lua_State* pLua ) :
+CSockTCP::CSockTCP( IOService_t& IOService, lua_State* pLua, bool bOpen ) :
 	m_Sock(IOService), m_Resolver(IOService)
 {
 	L = pLua;
 	m_nReferences = 0;
 
-	m_Sock.open(boost::asio::ip::tcp::v4());
+	if( bOpen )
+		m_Sock.open(boost::asio::ip::tcp::v4());
 }
 
 bool CSockTCP::Bind( CEndpoint& Endpoint, Callback_t Callback )
@@ -265,13 +267,13 @@ bool CSockTCP::Bind( CEndpoint& Endpoint, Callback_t Callback )
 
 		if( ec )
 		{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 			Lua()->Msg("GLSock(TCP): Unable to bind to %s:%u\n", ep.address().to_string().c_str(), ep.port());
 #endif
 		}
 		else
 		{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 			Lua()->Msg("GLSock(TCP): Bound to %s:%u\n", ep.address().to_string().c_str(), ep.port());
 #endif
 		}
@@ -280,7 +282,7 @@ bool CSockTCP::Bind( CEndpoint& Endpoint, Callback_t Callback )
 	}
 	catch (boost::exception& ex)
 	{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
 		bResult = false;
@@ -305,7 +307,7 @@ bool CSockTCP::Connect( std::string strHost, std::string strPort, Callback_t Cal
 	}
 	catch (boost::exception& ex)
 	{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
 		bResult = false;
@@ -349,7 +351,7 @@ bool CSockTCP::Close( void )
 	}
 	catch (boost::exception& ex)
 	{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
 		bResult = false;
@@ -414,7 +416,7 @@ void CSockTCP::OnConnect( Callback_t Callback, const boost::system::error_code& 
 		}
 		else
 		{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 			Lua()->Msg("GLSock(TCP) Connection failed: %s\n", ec.message().c_str());
 #endif
 
@@ -441,7 +443,7 @@ void CSockTCP::OnSend( Callback_t Callback, unsigned int cubBytes, const boost::
 {
 	if( ec )
 	{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 		Lua()->Msg("GLSock(TCP): %s\n", ec.message().c_str());
 #endif
 	}
@@ -480,7 +482,7 @@ void CSockTCP::OnRead( Callback_t Callback, const char* pData, unsigned int cubB
 
 	if( ec )
 	{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 		Lua()->Msg("GLSock(TCP): %s\n", ec.message().c_str());
 #endif
 	}
@@ -523,13 +525,13 @@ bool CSockUDP::Bind( CEndpoint& Endpoint, Callback_t Callback )
 
 		if( ec )
 		{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 			Lua()->Msg("GLSock(UDP): Unable to bind to %s:%u\n", ep.address().to_string().c_str(), ep.port());
 #endif
 		}
 		else
 		{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 			Lua()->Msg("GLSock(UDP): Bound to %s:%u\n", ep.address().to_string().c_str(), ep.port());
 #endif
 		}
@@ -538,7 +540,7 @@ bool CSockUDP::Bind( CEndpoint& Endpoint, Callback_t Callback )
 	}
 	catch (boost::exception& ex)
 	{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 		Lua()->Msg("GLSock(UDP): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
 		bResult = false;
@@ -556,7 +558,7 @@ bool CSockUDP::SendTo( const char* cbData, unsigned int cubBuffer, std::string s
 
 	boost::asio::ip::udp::endpoint ep = *iterator;
 
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 	Lua()->Msg("GLSock(UDP): Send attempt to %s:%u\n", ep.address().to_string().c_str(), ep.port());
 #endif
 
@@ -606,7 +608,7 @@ bool CSockUDP::Close( void )
 	}
 	catch (boost::exception& ex)
 	{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 		Lua()->Msg("GLSock(UDP): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
 		bResult = false;
@@ -638,7 +640,7 @@ void CSockUDP::OnSend( Callback_t Callback, unsigned int cubBytes, const boost::
 		{
 			boost::asio::ip::udp::endpoint ep = *iterator;
 
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 			Lua()->Msg("GLSock(UDP): Send attempt to %s:%u\n", ep.address().to_string().c_str(), ep.port());
 #endif
 
@@ -707,7 +709,7 @@ void CSockUDP::OnRead( Callback_t Callback, boost::asio::ip::udp::endpoint* pSen
 
 	if( ec )
 	{
-#if defined(SOCK_DEBUG)
+#if defined(_DEBUG)
 		Lua()->Msg("GLSock(UDP): %s\n", ec.message().c_str());
 #endif
 	}
@@ -730,28 +732,75 @@ void CSockUDP::OnDestroy( void )
 
 int TranslateErrorMessage( const boost::system::error_code& ec )
 {
-	if( !ec )
-		return SOCKET_ERROR_SUCCESS;
-	else if( ec == boost::asio::error::operation_aborted )
-		return SOCKET_ERROR_OPERATION_ABORTED;
-	else if( ec == boost::asio::error::already_connected )
-		return SOCKET_ERROR_ALREADY_CONNECTED;
-	else if( ec == boost::asio::error::address_in_use )
-		return SOCKET_ERROR_ADDRESS_IN_USE;
-	else if ( ec == boost::asio::error::host_unreachable || 
-		ec == boost::asio::error::host_not_found || 
-		ec == boost::asio::error::host_not_found_try_again )
-		return SOCKET_ERROR_HOST_UNREACHABLE;
-	else if( ec == boost::asio::error::connection_aborted )
-		return SOCKET_ERROR_CONNECTION_ABORTED;
-	else if( ec == boost::asio::error::connection_refused )
-		return SOCKET_ERROR_CONNECTION_REFUSED;
-	else if( ec == boost::asio::error::connection_reset )
-		return SOCKET_ERROR_CONNECTION_RESET;
-	else if( ec == boost::asio::error::timed_out )
-		return SOCKET_ERROR_TIMED_OUT;
-	else if( ec == boost::asio::error::not_connected )
-		return SOCKET_ERROR_NOT_CONNECTED;
+	switch(ec.value())
+	{
+	case 0:
+		return eSockErrorSuccess;
+	case boost::asio::error::access_denied:
+		return eSockErrorAccessDenied;
+	case boost::asio::error::address_family_not_supported:
+		return eSockErrorAddressFamilyNotSupported;
+	case boost::asio::error::address_in_use:
+		return eSockErrorAddressInUse;
+	case boost::asio::error::already_connected:
+		return eSockErrorAlreadyConnected;
+	case boost::asio::error::already_started:
+		return eSockErrorAlreadyStarted;
+	case boost::asio::error::broken_pipe:
+		return eSockErrorBrokenPipe;
+	case boost::asio::error::connection_refused:
+		return eSockErrorConnectionRefused;
+	case boost::asio::error::connection_reset:
+		return eSockErrorConnectionReset;
+	case boost::asio::error::bad_descriptor:
+		return eSockErrorBadDescriptor;
+	case boost::asio::error::fault:
+		return eSockErrorBadAddress;
+	case boost::asio::error::host_unreachable:
+		return eSockErrorHostUnreachable;
+	case boost::asio::error::in_progress:
+		return eSockErrorInProgress;
+	case boost::asio::error::interrupted:
+		return eSockErrorInterrupted;
+	case boost::asio::error::invalid_argument:
+		return eSockErrorInvalidArgument;
+	case boost::asio::error::message_size:
+		return eSockErrorMessageSize;
+	case boost::asio::error::name_too_long:
+		return eSockErrorNameTooLong;
+	case boost::asio::error::network_down:
+		return eSockErrorNetworkDown;
+	case boost::asio::error::network_reset:
+		return eSockErrorNetworkReset;
+	case boost::asio::error::network_unreachable:
+		return eSockErrorNetworkUnreachable;
+	case boost::asio::error::no_descriptors:
+		return eSockErrorNoDescriptors;
+	case boost::asio::error::no_buffer_space:
+		return eSockErrorNoBufferSpace;
+	case boost::asio::error::no_memory:
+		return eSockErrorNoMemory;
+	case boost::asio::error::no_permission:
+		return eSockErrorNoPermission;
+	case boost::asio::error::no_protocol_option:
+		return eSockErrorNoProtocolOption;
+	case boost::asio::error::not_connected:
+		return eSockErrorNotConnected;
+	case boost::asio::error::not_socket:
+		return eSockErrorNotSocket;
+	case boost::asio::error::operation_aborted:
+		return eSockErrorOperationAborted;
+	case boost::asio::error::operation_not_supported:
+		return eSockErrorOperationNotSupported;
+	case boost::asio::error::shut_down:
+		return eSockErrorShutDown;
+	case boost::asio::error::timed_out:
+		return eSockErrorTimedOut;
+	case boost::asio::error::try_again:
+		return eSockErrorTryAgain;
+	case boost::asio::error::would_block:
+		return eSockErrorWouldBlock;
+	}
 
 	return ec.value();
 }

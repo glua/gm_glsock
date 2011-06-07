@@ -21,27 +21,55 @@
 
 namespace GLSock {
 
-#define SOCK_DEBUG
-
 #define GLSOCK_NAME							"GLSock"
 #define GLSOCK_TYPE							'GLSK'
 
 // Socket Types
-#define SOCK_TYPE_ACCEPTOR					0
-#define SOCK_TYPE_TCP						1
-#define SOCK_TYPE_UDP						2
+enum ESockType
+{
+	eSockTypeAcceptor,
+	eSockTypeTCP,
+	eSockTypeUDP,
+};
 
 // Socket Errors
-#define SOCKET_ERROR_SUCCESS				0
-#define SOCKET_ERROR_ALREADY_CONNECTED		1
-#define SOCKET_ERROR_CONNECTION_ABORTED		2
-#define SOCKET_ERROR_CONNECTION_REFUSED		3
-#define SOCKET_ERROR_CONNECTION_RESET		4
-#define SOCKET_ERROR_ADDRESS_IN_USE			5
-#define SOCKET_ERROR_TIMED_OUT				6
-#define SOCKET_ERROR_HOST_UNREACHABLE		7
-#define SOCKET_ERROR_NOT_CONNECTED			8
-#define SOCKET_ERROR_OPERATION_ABORTED		9
+enum ESockError
+{
+	eSockErrorSuccess,
+	eSockErrorAccessDenied,
+	eSockErrorAddressFamilyNotSupported,
+	eSockErrorAddressInUse,
+	eSockErrorAlreadyConnected,
+	eSockErrorAlreadyStarted,
+	eSockErrorBrokenPipe,
+	eSockErrorConnectionAborted,
+	eSockErrorConnectionRefused,
+	eSockErrorConnectionReset,
+	eSockErrorBadDescriptor,
+	eSockErrorBadAddress,
+	eSockErrorHostUnreachable,
+	eSockErrorInProgress,
+	eSockErrorInterrupted,
+	eSockErrorInvalidArgument,
+	eSockErrorMessageSize,
+	eSockErrorNameTooLong,
+	eSockErrorNetworkDown,
+	eSockErrorNetworkReset,
+	eSockErrorNetworkUnreachable,
+	eSockErrorNoDescriptors,
+	eSockErrorNoBufferSpace,
+	eSockErrorNoMemory,
+	eSockErrorNoPermission,
+	eSockErrorNoProtocolOption,
+	eSockErrorNotConnected,
+	eSockErrorNotSocket,
+	eSockErrorOperationAborted,
+	eSockErrorOperationNotSupported,
+	eSockErrorShutDown,
+	eSockErrorTimedOut,
+	eSockErrorTryAgain,
+	eSockErrorWouldBlock,
+};
 
 // Typedefs
 typedef boost::asio::ip::tcp::socket TCPSock_t;
@@ -90,6 +118,7 @@ public:
 	virtual bool ReadFrom(unsigned int cubBuffer, Callback_t Callback) = 0;
 	virtual bool Resolve(const char* cszHostname, Callback_t Callback) = 0;
 	virtual bool Close(void) = 0;
+	virtual bool Cancel(void) = 0;
 	virtual int Type(void) = 0;
 
 	virtual void Reference(void) = 0;
@@ -134,9 +163,14 @@ public:
 	}
 	virtual bool Resolve(const char* cszHostname, Callback_t Callback);
 	virtual bool Close(void);
+	virtual bool Cancel(void)
+	{
+		m_Sock.cancel();
+		return true;
+	}
 	virtual int Type(void)
 	{
-		return SOCK_TYPE_ACCEPTOR;
+		return eSockTypeAcceptor;
 	}
 	AcceptorSock_t& Socket(void)
 	{
@@ -166,7 +200,7 @@ private:
 	lua_State* L;
 
 public:
-	CSockTCP(IOService_t& IOService, lua_State* pLua);
+	CSockTCP(IOService_t& IOService, lua_State* pLua, bool bOpen = true);
 
 	virtual bool Bind(CEndpoint& Endpoint, Callback_t Callback);
 	virtual bool Listen(int iBacklog, Callback_t Callback)
@@ -190,9 +224,14 @@ public:
 	}
 	virtual bool Resolve(const char* cszHostname, Callback_t Callback);
 	virtual bool Close(void);
+	virtual bool Cancel(void)
+	{
+		m_Sock.cancel();
+		return true;
+	}
 	virtual int Type(void)
 	{
-		return SOCK_TYPE_TCP;
+		return eSockTypeTCP;
 	}
 	TCPSock_t& Socket(void)
 	{
@@ -252,9 +291,14 @@ public:
 	virtual bool ReadFrom(unsigned int cubBuffer, Callback_t Callback);
 	virtual bool Resolve(const char* cszHostname, Callback_t Callback);
 	virtual bool Close(void);
+	virtual bool Cancel(void)
+	{
+		m_Sock.cancel();
+		return true;
+	}
 	virtual int Type(void)
 	{
-		return SOCK_TYPE_UDP;
+		return eSockTypeUDP;
 	}
 	UDPSock_t& Socket(void)
 	{

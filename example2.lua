@@ -1,10 +1,10 @@
 require( "glsock" )
 
-sock = GLSock(SOCK_TYPE_TCP);
+sock = GLSock(GLSOCK_TYPE_TCP);
 
 function OnRead(sock, buffer, error)
 
-	if( error == SOCK_ERROR_SUCCESS ) then
+	if( error == GLSOCK_ERROR_SUCCESS ) then
 		Say("Received " .. buffer:Size() .. " bytes");
 		
 		count, data = buffer:Read(buffer:Size());
@@ -14,7 +14,7 @@ function OnRead(sock, buffer, error)
 		
 	end
 	
-	if( error != SOCK_ERROR_SUCCESS ) then
+	if( error != GLSOCK_ERROR_SUCCESS ) then
 		sock:Close();
 	else
 		-- Continue reading.
@@ -25,7 +25,7 @@ end
 
 function OnConnect(sock, error)
 
-	if( error == SOCK_ERROR_SUCCESS ) then
+	if( error == GLSOCK_ERROR_SUCCESS ) then
 	
 		buffer = GLSockBuffer();
 		buffer:Write("GET /index.html HTTP/1.1\r\n");

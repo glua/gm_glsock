@@ -17,7 +17,7 @@ static int __new(lua_State* L)
 	Lua()->CheckType(1, GLua::TYPE_NUMBER);
 	
 	int nType = Lua()->GetInteger(1);
-	if( nType != SOCK_TYPE_ACCEPTOR && nType != SOCK_TYPE_TCP && nType != SOCK_TYPE_UDP )
+	if( nType != eSockTypeAcceptor && nType != eSockTypeTCP && nType != eSockTypeUDP )
 	{
 		Lua()->LuaError("Inalid socket type, must be either SOCKET_TYPE_ACCEPTOR, SOCKET_TYPE_TCP, SOCKET_TYPE_UDP", 1);
 		return 0;
@@ -25,12 +25,24 @@ static int __new(lua_State* L)
 
 	ISock* pSock = NULL;
 
-	if( nType == SOCK_TYPE_ACCEPTOR )
-		pSock = g_pSockMgr->CreateAcceptorSock(L);
-	else if( nType == SOCK_TYPE_TCP )
-		pSock = g_pSockMgr->CreateTCPSock(L);
-	else if( nType == SOCK_TYPE_UDP )
-		pSock = g_pSockMgr->CreateUDPSock(L);
+	switch(nType)
+	{
+	case eSockTypeAcceptor:
+		{
+			pSock = g_pSockMgr->CreateAcceptorSock(L);
+		}
+		break;
+	case eSockTypeTCP:
+		{
+			pSock = g_pSockMgr->CreateTCPSock(L);
+		}
+		break;
+	case eSockTypeUDP:
+		{
+			pSock = g_pSockMgr->CreateUDPSock(L);
+		}
+		break;
+	}
 
 	pSock->Reference();
 
@@ -374,6 +386,29 @@ static int Close(lua_State* L)
 	return 1;
 }
 
+static int Cancel(lua_State* L)
+{
+	// SCOPED_LOCK(g_pSockMgr->Mutex());
+#if defined(_DEBUG)
+	Lua()->Msg("%s()\n", __FUNCTION__);
+#endif
+
+	if( !L )
+		return 0;
+
+	Lua()->CheckType(1, GLSOCK_TYPE);
+
+	ISock* pSock = reinterpret_cast<ISock*>( Lua()->GetUserData(1) );
+	if( !g_pSockMgr->ValidHandle(pSock) )
+	{
+		Lua()->LuaError("Invalid socket handle", 1);
+		return 0;
+	}
+
+	Lua()->Push( pSock->Cancel() );
+	return 1;
+}
+
 static int Poll(lua_State* L)
 {
 	if( !L )
@@ -385,10 +420,6 @@ static int Poll(lua_State* L)
 
 void Startup( lua_State* L )
 {
-	// Looks like using thread is a bad thing, lets stick to poll_one in Dispatch
-
-	//g_pSockMgr->StartThread();
-
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 	{
 		CAutoUnRef Index = Lua()->GetNewTable();
@@ -403,6 +434,7 @@ void Startup( lua_State* L )
 		Index->SetMember("ReadFrom", GLSock::ReadFrom);
 		Index->SetMember("Resolve", GLSock::Resolve);
 		Index->SetMember("Close", GLSock::Close);
+		Index->SetMember("Cancel", GLSock::Cancel);
 
 		MetaTable->SetMember("__index", Index);
 	}
@@ -420,21 +452,45 @@ void Startup( lua_State* L )
 	Lua()->Call(3);
 
 	// Socket Types
-	Lua()->SetGlobal("SOCK_TYPE_ACCEPTOR", (float)SOCK_TYPE_ACCEPTOR);
-	Lua()->SetGlobal("SOCK_TYPE_TCP", (float)SOCK_TYPE_TCP);
-	Lua()->SetGlobal("SOCK_TYPE_UDP", (float)SOCK_TYPE_UDP);
+	Lua()->SetGlobal("GLSOCK_TYPE_ACCEPTOR", (float)eSockTypeAcceptor);
+	Lua()->SetGlobal("GLSOCK_TYPE_TCP", (float)eSockTypeTCP);
+	Lua()->SetGlobal("GLSOCK_TYPE_UDP", (float)eSockTypeUDP);
 
 	// Socket Errors
-	Lua()->SetGlobal("SOCK_ERROR_SUCCESS", (float)SOCKET_ERROR_SUCCESS);
-	Lua()->SetGlobal("SOCK_ERROR_ALREADY_CONNECTED", (float)SOCKET_ERROR_ALREADY_CONNECTED);
-	Lua()->SetGlobal("SOCK_ERROR_CONNECTION_ABORTED", (float)SOCKET_ERROR_CONNECTION_ABORTED);
-	Lua()->SetGlobal("SOCK_ERROR_CONNECTION_REFUSED", (float)SOCKET_ERROR_CONNECTION_REFUSED);
-	Lua()->SetGlobal("SOCK_ERROR_CONNECTION_RESET", (float)SOCKET_ERROR_CONNECTION_RESET);
-	Lua()->SetGlobal("SOCK_ERROR_ADDRESS_IN_USE", (float)SOCKET_ERROR_ADDRESS_IN_USE);
-	Lua()->SetGlobal("SOCK_ERROR_TIMED_OUT", (float)SOCKET_ERROR_TIMED_OUT);
-	Lua()->SetGlobal("SOCK_ERROR_HOST_UNREACHABLE", (float)SOCKET_ERROR_HOST_UNREACHABLE);
-	Lua()->SetGlobal("SOCK_ERROR_NOT_CONNECTED", (float)SOCKET_ERROR_NOT_CONNECTED);
-	Lua()->SetGlobal("SOCK_ERROR_OPERATION_ABORTED", (float)SOCKET_ERROR_OPERATION_ABORTED);
+	Lua()->SetGlobal("GLSOCK_ERROR_SUCCESS", (float)eSockErrorSuccess);
+	Lua()->SetGlobal("GLSOCK_ERROR_ACCESSDENIED", (float)eSockErrorAccessDenied);
+	Lua()->SetGlobal("GLSOCK_ERROR_ADDRESSFAMILYNOTSUPPORTED", (float)eSockErrorAddressFamilyNotSupported);
+	Lua()->SetGlobal("GLSOCK_ERROR_ADDRESSINUSE", (float)eSockErrorAddressInUse);
+	Lua()->SetGlobal("GLSOCK_ERROR_ALREADYCONNECTED", (float)eSockErrorAlreadyConnected);
+	Lua()->SetGlobal("GLSOCK_ERROR_ALREADYSTARTED", (float)eSockErrorAlreadyStarted);
+	Lua()->SetGlobal("GLSOCK_ERROR_BROKENPIPE", (float)eSockErrorBrokenPipe);
+	Lua()->SetGlobal("GLSOCK_ERROR_CONNECTIONABORTED", (float)eSockErrorConnectionAborted);
+	Lua()->SetGlobal("GLSOCK_ERROR_CONNECTIONREFUSED", (float)eSockErrorConnectionRefused);
+	Lua()->SetGlobal("GLSOCK_ERROR_CONNECTIONRESET", (float)eSockErrorConnectionReset);
+	Lua()->SetGlobal("GLSOCK_ERROR_BADDESCRIPTOR", (float)eSockErrorBadDescriptor);
+	Lua()->SetGlobal("GLSOCK_ERROR_BADADDRESS", (float)eSockErrorBadAddress);
+	Lua()->SetGlobal("GLSOCK_ERROR_HOSTUNREACHABLE", (float)eSockErrorHostUnreachable);
+	Lua()->SetGlobal("GLSOCK_ERROR_INPROGRESS", (float)eSockErrorInProgress);
+	Lua()->SetGlobal("GLSOCK_ERROR_INTERRUPTED", (float)eSockErrorInterrupted);
+	Lua()->SetGlobal("GLSOCK_ERROR_INVALIDARGUMENT", (float)eSockErrorInvalidArgument);
+	Lua()->SetGlobal("GLSOCK_ERROR_MESSAGESIZE", (float)eSockErrorMessageSize);
+	Lua()->SetGlobal("GLSOCK_ERROR_NAMETOOLONG", (float)eSockErrorNameTooLong);
+	Lua()->SetGlobal("GLSOCK_ERROR_NETWORKDOWN", (float)eSockErrorNetworkDown);
+	Lua()->SetGlobal("GLSOCK_ERROR_NETWORKRESET", (float)eSockErrorNetworkReset);
+	Lua()->SetGlobal("GLSOCK_ERROR_NETWORKUNREACHABLE", (float)eSockErrorNetworkUnreachable);
+	Lua()->SetGlobal("GLSOCK_ERROR_NODESCRIPTORS", (float)eSockErrorNoDescriptors);
+	Lua()->SetGlobal("GLSOCK_ERROR_NOBUFFERSPACE", (float)eSockErrorNoBufferSpace);
+	Lua()->SetGlobal("GLSOCK_ERROR_NOMEMORY", (float)eSockErrorNoMemory);
+	Lua()->SetGlobal("GLSOCK_ERROR_NOPERMISSION", (float)eSockErrorNoPermission);
+	Lua()->SetGlobal("GLSOCK_ERROR_NOPROTOCOLOPTION", (float)eSockErrorNoProtocolOption);
+	Lua()->SetGlobal("GLSOCK_ERROR_NOTCONNECTED", (float)eSockErrorNotConnected);
+	Lua()->SetGlobal("GLSOCK_ERROR_NOTSOCKET", (float)eSockErrorNotSocket);
+	Lua()->SetGlobal("GLSOCK_ERROR_OPERATIONABORTED", (float)eSockErrorOperationAborted);
+	Lua()->SetGlobal("GLSOCK_ERROR_OPERATIONNOTSUPPORTED", (float)eSockErrorOperationNotSupported);
+	Lua()->SetGlobal("GLSOCK_ERROR_SHUTDOWN", (float)eSockErrorShutDown);
+	Lua()->SetGlobal("GLSOCK_ERROR_TIMEDOUT", (float)eSockErrorTimedOut);
+	Lua()->SetGlobal("GLSOCK_ERROR_TRYAGAIN", (float)eSockErrorTryAgain);
+	Lua()->SetGlobal("GLSOCK_ERROR_WOULDBLOCK", (float)eSockErrorWouldBlock);
 }
 
 void Cleanup( lua_State* L )

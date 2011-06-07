@@ -32,7 +32,7 @@ public:
 	*/
 
 	GLSock::ISock* CreateAcceptorSock(lua_State* L);
-	GLSock::ISock* CreateTCPSock(lua_State* L);
+	GLSock::ISock* CreateTCPSock(lua_State* L, bool bOpen = true);
 	GLSock::ISock* CreateUDPSock(lua_State* L);
 
 	bool RemoveSock(GLSock::ISock* pSock);
@@ -52,11 +52,11 @@ public:
 
 		m_IOService.poll_one();
 
-		while( !m_Callbacks.empty() )
+		if( !m_Callbacks.empty() )
 		{
-			boost::function<void(lua_State*)>& cb = m_Callbacks.top();
-			cb(L);
+			boost::function<void(lua_State*)> cb = m_Callbacks.top();
 			m_Callbacks.pop();
+			cb(L);
 		}
 	}
 
