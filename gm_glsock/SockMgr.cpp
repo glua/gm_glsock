@@ -16,26 +16,13 @@ CSockMgr::~CSockMgr( void )
 
 	for( itr = m_vecSocks.begin(); itr != m_vecSocks.end(); itr++ )
 	{
-		(*itr)->Destroy();
+		//(*itr)->Destroy();
+		(*itr)->Cancel();
+		(*itr)->Close();
+		delete *itr;
 	}
 	
 	m_Mutex.unlock();
-
-	for(;;)
-	{
-		// TODO: Use scoped lock maybe?
-
-		m_Mutex.lock();
-		if( m_vecSocks.empty() )
-		{
-			m_Mutex.unlock();
-			break;
-		}
-		m_Mutex.unlock();
-
-		// Poll until the socks have been cleaned up.
-		m_IOService.poll_one();
-	}
 }
 
 /*

@@ -796,8 +796,6 @@ int TranslateErrorMessage( const boost::system::error_code& ec )
 		return eSockErrorShutDown;
 	case boost::asio::error::timed_out:
 		return eSockErrorTimedOut;
-	case boost::asio::error::try_again:
-		return eSockErrorTryAgain;
 	case boost::asio::error::would_block:
 		return eSockErrorWouldBlock;
 	}

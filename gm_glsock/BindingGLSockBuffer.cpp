@@ -669,9 +669,9 @@ void Startup( lua_State* L )
 	Lua()->SetGlobal("GLSockBuffer", GLSockBuffer::__new);
 
 	// Seek Methods
-	Lua()->SetGlobal("SOCKBUFFER_SEEK_SET", (float)SOCKBUFFER_SEEK_SET);
-	Lua()->SetGlobal("SOCKBUFFER_SEEK_CUR", (float)SOCKBUFFER_SEEK_CUR);
-	Lua()->SetGlobal("SOCKBUFFER_SEEK_END", (float)SOCKBUFFER_SEEK_END);
+	Lua()->SetGlobal("GLSOCKBUFFER_SEEK_SET", (float)SOCKBUFFER_SEEK_SET);
+	Lua()->SetGlobal("GLSOCKBUFFER_SEEK_CUR", (float)SOCKBUFFER_SEEK_CUR);
+	Lua()->SetGlobal("GLSOCKBUFFER_SEEK_END", (float)SOCKBUFFER_SEEK_END);
 }
 
 void Cleanup( lua_State* L )
