@@ -8,7 +8,10 @@
 #include <vector>
 #include <string>
 #include <stack>
-#include "GLSock.h"
+
+#include "GLSockAcceptor.h"
+#include "GLSockTCP.h"
+#include "GLSockUDP.h"
 
 class CSockMgr
 {
@@ -19,7 +22,7 @@ private:
 	boost::asio::io_service::work m_Worker;
 	boost::thread m_Thread;
 	Mutex_t m_Mutex;
-	std::vector<GLSock::ISock*> m_vecSocks;
+	std::vector<GLSock::CGLSock*> m_vecSocks;
 	std::stack<boost::function<void(lua_State*)> > m_Callbacks;
 
 public:
@@ -31,12 +34,12 @@ public:
 	bool StopThread();
 	*/
 
-	GLSock::ISock* CreateAcceptorSock(lua_State* L);
-	GLSock::ISock* CreateTCPSock(lua_State* L, bool bOpen = true);
-	GLSock::ISock* CreateUDPSock(lua_State* L);
+	GLSock::CGLSock* CreateAcceptorSock(lua_State* L);
+	GLSock::CGLSock* CreateTCPSock(lua_State* L, bool bOpen = true);
+	GLSock::CGLSock* CreateUDPSock(lua_State* L);
 
-	bool RemoveSock(GLSock::ISock* pSock);
-	bool ValidHandle(GLSock::ISock* pSock);
+	bool RemoveSock(GLSock::CGLSock* pSock);
+	bool ValidHandle(GLSock::CGLSock* pSock);
 
 	template<typename T>
 	void StoreCallback(T cb)

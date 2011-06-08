@@ -66,6 +66,14 @@ GLSock.Read(bytes_to_read, callback(handle, buffer, errno))
 	Returns:
 	    boolean
 		
+GLSock.ReadUntil(delimiter, callback(handle, buffer, errno))
+    Description:
+	    Reads until the internal buffer holds delimiter and calls the callback.
+		
+		Always fails on GLSOCK_TYPE_ACCEPTOR and GLSOCK_TYPE_UDP
+	Returns:
+	    boolean	
+		
 GLSock.ReadFrom(bytes_to_read, callback(handle, sender_host, sender_port, buffer, errno))
     Description:
 	    Same as GLSock.Read

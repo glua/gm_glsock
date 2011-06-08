@@ -59,7 +59,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
@@ -96,7 +96,10 @@
   <ItemGroup>
     <ClCompile Include="BufferMgr.cpp" />
     <ClCompile Include="GLSock.cpp" />
+    <ClCompile Include="GLSockAcceptor.cpp" />
     <ClCompile Include="GLSockBuffer.cpp" />
+    <ClCompile Include="GLSockTCP.cpp" />
+    <ClCompile Include="GLSockUDP.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="BindingGLSock.cpp" />
     <ClCompile Include="BindingGLSockBuffer.cpp" />
@@ -105,7 +108,10 @@
   <ItemGroup>
     <ClInclude Include="BufferMgr.h" />
     <ClInclude Include="GLSock.h" />
+    <ClInclude Include="GLSockAcceptor.h" />
     <ClInclude Include="GLSockBuffer.h" />
+    <ClInclude Include="GLSockTCP.h" />
+    <ClInclude Include="GLSockUDP.h" />
     <ClInclude Include="Lock.h" />
     <ClInclude Include="BindingGLSock.h" />
     <ClInclude Include="BindingGLSockBuffer.h" />

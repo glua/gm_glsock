@@ -23,7 +23,7 @@ static int __new(lua_State* L)
 		return 0;
 	}
 
-	ISock* pSock = NULL;
+	CGLSock* pSock = NULL;
 
 	switch(nType)
 	{
@@ -68,7 +68,7 @@ static int __delete(lua_State* L)
 
 	Lua()->CheckType(1, GLSOCK_TYPE);
 
-	ISock* pSock = reinterpret_cast<ISock*>( Lua()->GetUserData(1) );
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
 	if( !g_pSockMgr->ValidHandle(pSock) )
 	{
 		// Lua()->LuaError("Invalid socket handle", 1);
@@ -95,7 +95,7 @@ static int Bind(lua_State* L)
 	Lua()->CheckType(3, GLua::TYPE_NUMBER);
 	Lua()->CheckType(4, GLua::TYPE_FUNCTION);
 
-	ISock* pSock = reinterpret_cast<ISock*>( Lua()->GetUserData(1) );
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
 	if( !g_pSockMgr->ValidHandle(pSock) )
 	{
 		Lua()->LuaError("Invalid socket handle", 1);
@@ -146,7 +146,7 @@ static int Listen(lua_State* L)
 	Lua()->CheckType(2, GLua::TYPE_NUMBER);
 	Lua()->CheckType(3, GLua::TYPE_FUNCTION);
 
-	ISock* pSock = reinterpret_cast<ISock*>( Lua()->GetUserData(1) );
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
 	if( !g_pSockMgr->ValidHandle(pSock) )
 	{
 		Lua()->LuaError("Invalid socket handle", 1);
@@ -173,7 +173,7 @@ static int Accept(lua_State* L)
 	Lua()->CheckType(1, GLSOCK_TYPE);
 	Lua()->CheckType(2, GLua::TYPE_FUNCTION);
 
-	ISock* pSock = reinterpret_cast<ISock*>( Lua()->GetUserData(1) );
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
 	if( !g_pSockMgr->ValidHandle(pSock) )
 	{
 		Lua()->LuaError("Invalid socket handle", 1);
@@ -201,7 +201,7 @@ static int Connect(lua_State* L)
 	Lua()->CheckType(3, GLua::TYPE_NUMBER);
 	Lua()->CheckType(4, GLua::TYPE_FUNCTION);
 
-	ISock* pSock = reinterpret_cast<ISock*>( Lua()->GetUserData(1) );
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
 	if( !g_pSockMgr->ValidHandle(pSock) )
 	{
 		Lua()->LuaError("Invalid socket handle", 1);
@@ -236,7 +236,7 @@ static int Send(lua_State* L)
 	Lua()->CheckType(2, GLSOCKBUFFER_TYPE);
 	Lua()->CheckType(3, GLua::TYPE_FUNCTION);
 
-	ISock* pSock = reinterpret_cast<ISock*>( Lua()->GetUserData(1) );
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
 	if( !g_pSockMgr->ValidHandle(pSock) )
 	{
 		Lua()->LuaError("Invalid socket handle", 1);
@@ -267,7 +267,7 @@ static int SendTo(lua_State* L)
 	Lua()->CheckType(4, GLua::TYPE_NUMBER);
 	Lua()->CheckType(5, GLua::TYPE_FUNCTION);
 
-	ISock* pSock = reinterpret_cast<ISock*>( Lua()->GetUserData(1) );
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
 	if( !g_pSockMgr->ValidHandle(pSock) )
 	{
 		Lua()->LuaError("Invalid socket handle", 1);
@@ -299,7 +299,7 @@ static int Read(lua_State* L)
 	Lua()->CheckType(2, GLua::TYPE_NUMBER);
 	Lua()->CheckType(3, GLua::TYPE_FUNCTION);
 
-	ISock* pSock = reinterpret_cast<ISock*>( Lua()->GetUserData(1) );
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
 	if( !g_pSockMgr->ValidHandle(pSock) )
 	{
 		Lua()->LuaError("Invalid socket handle", 1);
@@ -312,6 +312,35 @@ static int Read(lua_State* L)
 	Lua()->Push( pSock->Read(iCount, nCallback) );
 	return 1;
 }
+
+static int ReadUntil(lua_State* L)
+{
+	// SCOPED_LOCK(g_pSockMgr->Mutex());
+#if defined(_DEBUG)
+	Lua()->Msg("%s()\n", __FUNCTION__);
+#endif
+
+	if( !L )
+		return 0;
+
+	Lua()->CheckType(1, GLSOCK_TYPE);
+	Lua()->CheckType(2, GLua::TYPE_STRING);
+	Lua()->CheckType(3, GLua::TYPE_FUNCTION);
+
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
+	if( !g_pSockMgr->ValidHandle(pSock) )
+	{
+		Lua()->LuaError("Invalid socket handle", 1);
+		return 0;
+	}
+
+	const char* pszDelimiter = Lua()->GetString(2);
+	Callback_t nCallback = Lua()->GetReference(3);
+
+	Lua()->Push( pSock->ReadUntil(pszDelimiter, nCallback) );
+	return 1;
+}
+
 
 static int ReadFrom(lua_State* L)
 {
@@ -327,7 +356,7 @@ static int ReadFrom(lua_State* L)
 	Lua()->CheckType(2, GLua::TYPE_NUMBER);
 	Lua()->CheckType(3, GLua::TYPE_FUNCTION);
 
-	ISock* pSock = reinterpret_cast<ISock*>( Lua()->GetUserData(1) );
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
 	if( !g_pSockMgr->ValidHandle(pSock) )
 	{
 		Lua()->LuaError("Invalid socket handle", 1);
@@ -353,7 +382,7 @@ static int Resolve(lua_State* L)
 
 	Lua()->CheckType(1, GLSOCK_TYPE);
 
-	ISock* pSock = reinterpret_cast<ISock*>( Lua()->GetUserData(1) );
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
 	if( !g_pSockMgr->ValidHandle(pSock) )
 	{
 		Lua()->LuaError("Invalid socket handle", 1);
@@ -375,7 +404,7 @@ static int Close(lua_State* L)
 
 	Lua()->CheckType(1, GLSOCK_TYPE);
 
-	ISock* pSock = reinterpret_cast<ISock*>( Lua()->GetUserData(1) );
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
 	if( !g_pSockMgr->ValidHandle(pSock) )
 	{
 		Lua()->LuaError("Invalid socket handle", 1);
@@ -398,7 +427,7 @@ static int Cancel(lua_State* L)
 
 	Lua()->CheckType(1, GLSOCK_TYPE);
 
-	ISock* pSock = reinterpret_cast<ISock*>( Lua()->GetUserData(1) );
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
 	if( !g_pSockMgr->ValidHandle(pSock) )
 	{
 		Lua()->LuaError("Invalid socket handle", 1);
@@ -431,6 +460,7 @@ void Startup( lua_State* L )
 		Index->SetMember("Send", GLSock::Send);
 		Index->SetMember("SendTo", GLSock::SendTo);
 		Index->SetMember("Read", GLSock::Read);
+		Index->SetMember("ReadUntil", GLSock::ReadUntil);
 		Index->SetMember("ReadFrom", GLSock::ReadFrom);
 		Index->SetMember("Resolve", GLSock::Resolve);
 		Index->SetMember("Close", GLSock::Close);

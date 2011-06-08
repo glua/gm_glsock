@@ -35,6 +35,15 @@
     <ClCompile Include="BindingGLSockBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GLSockAcceptor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GLSockTCP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GLSockUDP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BufferMgr.h">
@@ -71,6 +80,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BindingGLSockBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GLSockAcceptor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GLSockTCP.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GLSockUDP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

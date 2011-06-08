@@ -10,7 +10,7 @@ CSockMgr::CSockMgr( void ) :
 
 CSockMgr::~CSockMgr( void )
 {
-	std::vector<GLSock::ISock*>::iterator itr;
+	std::vector<GLSock::CGLSock*>::iterator itr;
 
 	m_Mutex.lock();
 
@@ -25,52 +25,33 @@ CSockMgr::~CSockMgr( void )
 	m_Mutex.unlock();
 }
 
-/*
-bool CSockMgr::StartThread()
+GLSock::CGLSock* CSockMgr::CreateAcceptorSock(lua_State* L)
 {
-	m_Thread = boost::thread( boost::bind(&boost::asio::io_service::run, &m_IOService) );
-	return true;
-}
-
-bool CSockMgr::StopThread()
-{
-	m_IOService.stop();
-	// m_IOService.reset();
-
-	if( m_Thread.joinable() )
-		m_Thread.join();
-
-	return true;
-}
-*/
-
-GLSock::ISock* CSockMgr::CreateAcceptorSock(lua_State* L)
-{
-	GLSock::CSockAcceptor* pSock = new GLSock::CSockAcceptor(m_IOService, L);
+	GLSock::CGLSockAcceptor* pSock = new GLSock::CGLSockAcceptor(m_IOService, L);
 	m_vecSocks.push_back(pSock);
 
 	return pSock;
 }
 
-GLSock::ISock* CSockMgr::CreateTCPSock( lua_State* L, bool bOpen )
+GLSock::CGLSock* CSockMgr::CreateTCPSock( lua_State* L, bool bOpen )
 {
-	GLSock::CSockTCP* pSock = new GLSock::CSockTCP(m_IOService, L, bOpen);
+	GLSock::CGLSockTCP* pSock = new GLSock::CGLSockTCP(m_IOService, L, bOpen);
 	m_vecSocks.push_back(pSock);
 
 	return pSock;
 }
 
-GLSock::ISock* CSockMgr::CreateUDPSock( lua_State* L )
+GLSock::CGLSock* CSockMgr::CreateUDPSock( lua_State* L )
 {
-	GLSock::CSockUDP* pSock = new GLSock::CSockUDP(m_IOService, L);
+	GLSock::CGLSockUDP* pSock = new GLSock::CGLSockUDP(m_IOService, L);
 	m_vecSocks.push_back(pSock);
 
 	return pSock;
 }
 
-bool CSockMgr::RemoveSock( GLSock::ISock* pSock )
+bool CSockMgr::RemoveSock( GLSock::CGLSock* pSock )
 {
-	std::vector<GLSock::ISock*>::iterator itr;
+	std::vector<GLSock::CGLSock*>::iterator itr;
 	for( itr = m_vecSocks.begin(); itr != m_vecSocks.end(); itr++ )
 	{
 		if( *itr == pSock )
@@ -83,9 +64,9 @@ bool CSockMgr::RemoveSock( GLSock::ISock* pSock )
 	return false;
 }
 
-bool CSockMgr::ValidHandle( GLSock::ISock* pSock )
+bool CSockMgr::ValidHandle( GLSock::CGLSock* pSock )
 {
-	std::vector<GLSock::ISock*>::iterator itr;
+	std::vector<GLSock::CGLSock*>::iterator itr;
 	for( itr = m_vecSocks.begin(); itr != m_vecSocks.end(); itr++ )
 	{
 		if( *itr == pSock )
@@ -94,10 +75,3 @@ bool CSockMgr::ValidHandle( GLSock::ISock* pSock )
 
 	return false;
 }
-
-/*
-CMutex& CSockMgr::Mutex()
-{
-	return m_Mutex;
-}
-*/

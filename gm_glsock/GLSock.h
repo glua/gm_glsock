@@ -6,6 +6,7 @@
 #endif
 
 #define NO_SDK
+
 #include "GMLuaModule.h"
 #include "Lock.h"
 
@@ -27,7 +28,8 @@ namespace GLSock {
 // Socket Types
 enum ESockType
 {
-	eSockTypeAcceptor,
+	eSockTypeInvalid = -1,
+	eSockTypeAcceptor = 0,
 	eSockTypeTCP,
 	eSockTypeUDP,
 };
@@ -105,222 +107,29 @@ public:
 };
 
 // Interfaces
-class ISock
+class CGLSock
 {
 public:
-	virtual bool Bind(CEndpoint& Endpoint, Callback_t Callback) = 0;
-	virtual bool Listen(int iBacklog, Callback_t Callback) = 0;
-	virtual bool Accept(Callback_t Callback) = 0;
-	virtual bool Connect(std::string strHost, std::string strPort, Callback_t Callback) = 0;
-	virtual bool Send(const char* cbData, unsigned int cubBuffer, Callback_t Callback) = 0;
-	virtual bool SendTo(const char* cbData, unsigned int cubBuffer, std::string strHost, std::string strPort, Callback_t Callback) = 0;
-	virtual bool Read(unsigned int cubBuffer, Callback_t Callback) = 0;
-	virtual bool ReadFrom(unsigned int cubBuffer, Callback_t Callback) = 0;
-	virtual bool Resolve(const char* cszHostname, Callback_t Callback) = 0;
-	virtual bool Close(void) = 0;
-	virtual bool Cancel(void) = 0;
-	virtual int Type(void) = 0;
+	virtual bool Bind(CEndpoint& Endpoint, Callback_t Callback);
+	virtual bool Listen(int iBacklog, Callback_t Callback);
+	virtual bool Accept(Callback_t Callback);
+	virtual bool Connect(std::string strHost, std::string strPort, Callback_t Callback);
+	virtual bool Send(const char* cbData, unsigned int cubBuffer, Callback_t Callback);
+	virtual bool SendTo(const char* cbData, unsigned int cubBuffer, std::string strHost, std::string strPort, Callback_t Callback);
+	virtual bool Read(unsigned int cubBuffer, Callback_t Callback);
+	virtual bool ReadUntil(const char* pszDelimiter, Callback_t Callback);
+	virtual bool ReadFrom(unsigned int cubBuffer, Callback_t Callback);
+	virtual bool Resolve(const char* cszHostname, Callback_t Callback);
+	virtual bool Close(void);
+	virtual bool Cancel(void);
+	virtual int Type(void);
 
 	virtual void Reference(void) = 0;
 	virtual void Unreference(void) = 0;
 	virtual void Destroy(void) = 0;
+
+	virtual int TranslateErrorMessage(const boost::system::error_code& ec);
 };
-
-// Implementation
-class CSockAcceptor : public ISock
-{
-private:
-	boost::mutex m_Mutex;
-	int m_nReferences;
-	AcceptorSock_t m_Sock;
-	lua_State* L;
-
-public:
-	CSockAcceptor(IOService_t& IOService_t, lua_State* pLua);
-
-	virtual bool Bind(CEndpoint& Endpoint, Callback_t Callback);
-	virtual bool Listen(int iBacklog, Callback_t Callback);
-	virtual bool Accept(Callback_t Callback);
-	virtual bool Connect(std::string strHost, std::string strPort, Callback_t Callback)
-	{
-		return false; // Stub
-	}
-	virtual bool Send(const char* cbData, unsigned int cubBuffer, Callback_t Callback)
-	{
-		return false; // Stub
-	}
-	virtual bool SendTo(const char* cbData, unsigned int cubBuffer, std::string strHost, std::string strPort, Callback_t Callback)
-	{
-		return false; // Stub
-	}
-	virtual bool Read(unsigned int cubBuffer, Callback_t Callback)
-	{
-		return false; // Stub
-	}
-	virtual bool ReadFrom(unsigned int cubBuffer, Callback_t Callback)
-	{
-		return false; // Stub
-	}
-	virtual bool Resolve(const char* cszHostname, Callback_t Callback);
-	virtual bool Close(void);
-	virtual bool Cancel(void)
-	{
-		m_Sock.cancel();
-		return true;
-	}
-	virtual int Type(void)
-	{
-		return eSockTypeAcceptor;
-	}
-	AcceptorSock_t& Socket(void)
-	{
-		return m_Sock;
-	}
-	virtual void Reference(void);
-	virtual void Unreference(void);
-	virtual void Destroy(void)
-	{
-		m_Sock.cancel();
-		m_Sock.close();
-		m_Sock.io_service().dispatch( boost::bind(&CSockAcceptor::OnDestroy, this));
-	}
-
-private:
-	void OnAccept(Callback_t Callback, class CSockTCP* pSock, const boost::system::error_code& ec);
-	void OnDestroy(void);
-};
-
-class CSockTCP : public ISock
-{
-private:
-	boost::mutex m_Mutex;
-	int m_nReferences;
-	TCPSock_t m_Sock;
-	TCPResolver_t m_Resolver;
-	lua_State* L;
-
-public:
-	CSockTCP(IOService_t& IOService, lua_State* pLua, bool bOpen = true);
-
-	virtual bool Bind(CEndpoint& Endpoint, Callback_t Callback);
-	virtual bool Listen(int iBacklog, Callback_t Callback)
-	{
-		return false; // Stub
-	}
-	virtual bool Accept(Callback_t Callback)
-	{
-		return false; // Stub
-	}
-	virtual bool Connect(std::string strHost, std::string strPort, Callback_t Callback);
-	virtual bool Send(const char* cbData, unsigned int cubBuffer, Callback_t Callback);
-	virtual bool SendTo(const char* cbData, unsigned int cubBuffer, std::string strHost, std::string strPort, Callback_t Callback)
-	{
-		return false; // Stub
-	}
-	virtual bool Read(unsigned int cubBuffer, Callback_t Callback);
-	virtual bool ReadFrom(unsigned int cubBuffer, Callback_t Callback)
-	{
-		return false; // Stub
-	}
-	virtual bool Resolve(const char* cszHostname, Callback_t Callback);
-	virtual bool Close(void);
-	virtual bool Cancel(void)
-	{
-		m_Sock.cancel();
-		return true;
-	}
-	virtual int Type(void)
-	{
-		return eSockTypeTCP;
-	}
-	TCPSock_t& Socket(void)
-	{
-		return m_Sock;
-	}
-	virtual void Reference(void);
-	virtual void Unreference(void);
-	virtual void Destroy(void)
-	{
-		m_Sock.cancel();
-		m_Sock.close();
-		m_Sock.io_service().dispatch( boost::bind(&CSockTCP::OnDestroy, this));
-	}
-
-private:
-	void OnResolve(Callback_t Callback, const boost::system::error_code& ec, TCPResolver_t::iterator endpoint_iterator);
-	void OnConnect(Callback_t Callback, const boost::system::error_code& ec, TCPResolver_t::iterator endpoint_iterator);
-	void OnSend(Callback_t Callback, unsigned int cubBytes, const boost::system::error_code& ec);
-	void OnRead(Callback_t Callback, const char* pData, unsigned int cubBytes, const boost::system::error_code& ec);
-	void OnDestroy(void);
-};
-
-class CSockUDP : public ISock
-{
-private:
-	boost::mutex m_Mutex;
-	int m_nReferences;
-	UDPSock_t m_Sock;
-	UDPResolver_t m_Resolver;
-	lua_State* L;
-
-public:
-	CSockUDP(IOService_t& IOService, lua_State* pLua);
-
-	virtual bool Bind(CEndpoint& Endpoint, Callback_t Callback);
-	virtual bool Listen(int iBacklog, Callback_t Callback)
-	{
-		return false; // Stub
-	}
-	virtual bool Accept(Callback_t Callback)
-	{
-		return false; // Stub
-	}
-	virtual bool Connect(std::string strHost, std::string strPort, Callback_t Callback)
-	{
-		return false; // Stub
-	}
-	virtual bool Send(const char* cbData, unsigned int cubBuffer, Callback_t Callback)
-	{
-		return false; // Stub
-	}
-	virtual bool SendTo(const char* cbData, unsigned int cubBuffer, std::string strHost, std::string strPort, Callback_t Callback);
-	virtual bool Read(unsigned int cubBuffer, Callback_t Callback)
-	{
-		return false; // Stub
-	}
-	virtual bool ReadFrom(unsigned int cubBuffer, Callback_t Callback);
-	virtual bool Resolve(const char* cszHostname, Callback_t Callback);
-	virtual bool Close(void);
-	virtual bool Cancel(void)
-	{
-		m_Sock.cancel();
-		return true;
-	}
-	virtual int Type(void)
-	{
-		return eSockTypeUDP;
-	}
-	UDPSock_t& Socket(void)
-	{
-		return m_Sock;
-	}
-	virtual void Reference(void);
-	virtual void Unreference(void);
-	virtual void Destroy(void)
-	{
-		m_Sock.cancel();
-		m_Sock.close();
-		m_Sock.io_service().dispatch( boost::bind(&CSockUDP::OnDestroy, this));
-	}
-	
-private:
-	void OnSend(Callback_t Callback, unsigned int cubBytes, const boost::system::error_code& ec, UDPResolver_t::iterator iterator, const char* pBuffer, unsigned int cubBuffer);
-	void OnRead(Callback_t Callback, boost::asio::ip::udp::endpoint* pSender, const char* pData, unsigned int cubBytes, const boost::system::error_code& ec);
-	void OnDestroy(void);
-};
-
-// Internal Functions
-int TranslateErrorMessage(const boost::system::error_code& ec);
 
 } // GLSock
 
