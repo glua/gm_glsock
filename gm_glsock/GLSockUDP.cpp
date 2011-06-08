@@ -248,6 +248,8 @@ void CGLSockUDP::OnRead( Callback_t Callback, boost::asio::ip::udp::endpoint* pS
 		pBuffer->Seek(0, SOCKBUFFER_SEEK_SET);
 	}
 
+	delete[] pData;
+
 	g_pSockMgr->StoreCallback( boost::bind(&CGLSockUDP::CallbackRead, this, Callback, this, pSender->address().to_string(), pSender->port(), pBuffer, TranslateErrorMessage(ec), _1) );
 
 	delete pSender;
