@@ -7,22 +7,16 @@ namespace GLSock {
 static int __new(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
 
-	if( !L )
-		return 0;
-
 	Lua()->CheckType(1, GLua::TYPE_NUMBER);
 	
 	int nType = Lua()->GetInteger(1);
-	if( nType != eSockTypeAcceptor && nType != eSockTypeTCP && nType != eSockTypeUDP )
-	{
-		Lua()->LuaError("Inalid socket type, must be either SOCKET_TYPE_ACCEPTOR, SOCKET_TYPE_TCP, SOCKET_TYPE_UDP", 1);
-		return 0;
-	}
-
 	CGLSock* pSock = NULL;
 
 	switch(nType)
@@ -42,6 +36,12 @@ static int __new(lua_State* L)
 			pSock = g_pSockMgr->CreateUDPSock(L);
 		}
 		break;
+	default:
+		{
+			Lua()->LuaError("Inalid socket type, must be either SOCKET_TYPE_ACCEPTOR, SOCKET_TYPE_TCP, SOCKET_TYPE_UDP", 1);
+			return 0;
+		}
+		break;
 	}
 
 	pSock->Reference();
@@ -59,12 +59,12 @@ static int __new(lua_State* L)
 static int __delete(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCK_TYPE);
 
@@ -83,12 +83,12 @@ static int __delete(lua_State* L)
 static int Bind(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCK_TYPE);
 	Lua()->CheckType(2, GLua::TYPE_STRING);
@@ -135,12 +135,12 @@ static int Bind(lua_State* L)
 static int Listen(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCK_TYPE);
 	Lua()->CheckType(2, GLua::TYPE_NUMBER);
@@ -163,12 +163,12 @@ static int Listen(lua_State* L)
 static int Accept(lua_State* L)
 {	
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCK_TYPE);
 	Lua()->CheckType(2, GLua::TYPE_FUNCTION);
@@ -189,12 +189,12 @@ static int Accept(lua_State* L)
 static int Connect(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCK_TYPE);
 	Lua()->CheckType(2, GLua::TYPE_STRING);
@@ -225,12 +225,12 @@ static int Connect(lua_State* L)
 static int Send(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCK_TYPE);
 	Lua()->CheckType(2, GLSOCKBUFFER_TYPE);
@@ -254,12 +254,12 @@ static int Send(lua_State* L)
 static int SendTo(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCK_TYPE);
 	Lua()->CheckType(2, GLSOCKBUFFER_TYPE);
@@ -288,12 +288,12 @@ static int SendTo(lua_State* L)
 static int Read(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCK_TYPE);
 	Lua()->CheckType(2, GLua::TYPE_NUMBER);
@@ -316,12 +316,12 @@ static int Read(lua_State* L)
 static int ReadUntil(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCK_TYPE);
 	Lua()->CheckType(2, GLua::TYPE_STRING);
@@ -345,12 +345,12 @@ static int ReadUntil(lua_State* L)
 static int ReadFrom(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCK_TYPE);
 	Lua()->CheckType(2, GLua::TYPE_NUMBER);
@@ -373,12 +373,12 @@ static int ReadFrom(lua_State* L)
 static int Resolve(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCK_TYPE);
 
@@ -395,12 +395,12 @@ static int Resolve(lua_State* L)
 static int Close(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCK_TYPE);
 
@@ -418,12 +418,12 @@ static int Close(lua_State* L)
 static int Cancel(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCK_TYPE);
 

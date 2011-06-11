@@ -23,6 +23,19 @@ CSockMgr::~CSockMgr( void )
 	}
 	
 	m_Mutex.unlock();
+
+	for(;;)
+	{
+		{
+			Mutex_t::scoped_lock lock(m_Mutex);
+			if( m_vecSocks.empty() )
+				break;
+		}
+		m_IOService.poll_one();
+	}
+
+	m_IOService.stop();
+	m_IOService.reset();
 }
 
 GLSock::CGLSock* CSockMgr::CreateAcceptorSock(lua_State* L)

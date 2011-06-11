@@ -8,12 +8,12 @@ namespace GLSockBuffer {
 static int __new(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	CGLSockBuffer* pBuffer = g_pBufferMgr->Create();
 	pBuffer->Reference();
@@ -27,12 +27,12 @@ static int __new(lua_State* L)
 static int __delete(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 
@@ -48,12 +48,12 @@ static int __delete(lua_State* L)
 static int Write(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 	Lua()->CheckType(2, GLua::TYPE_STRING);
@@ -74,12 +74,12 @@ static int Write(lua_State* L)
 static int Read(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 	Lua()->CheckType(2, GLua::TYPE_NUMBER);
@@ -126,12 +126,12 @@ static int Read(lua_State* L)
 static int WriteString(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 	Lua()->CheckType(2, GLua::TYPE_STRING);
@@ -152,12 +152,12 @@ static int WriteString(lua_State* L)
 static int ReadString(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 	
@@ -207,12 +207,12 @@ static int ReadString(lua_State* L)
 static int WriteDouble(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 	Lua()->CheckType(2, GLua::TYPE_NUMBER);
@@ -233,12 +233,12 @@ static int WriteDouble(lua_State* L)
 static int ReadDouble(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 
@@ -269,12 +269,12 @@ static int ReadDouble(lua_State* L)
 static int WriteFloat(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 	Lua()->CheckType(2, GLua::TYPE_NUMBER);
@@ -295,12 +295,12 @@ static int WriteFloat(lua_State* L)
 static int ReadFloat(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 
@@ -331,12 +331,12 @@ static int ReadFloat(lua_State* L)
 static int WriteLong(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 	Lua()->CheckType(2, GLua::TYPE_NUMBER);
@@ -357,12 +357,12 @@ static int WriteLong(lua_State* L)
 static int ReadLong(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 
@@ -393,12 +393,12 @@ static int ReadLong(lua_State* L)
 static int WriteShort(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 	Lua()->CheckType(2, GLua::TYPE_NUMBER);
@@ -419,12 +419,12 @@ static int WriteShort(lua_State* L)
 static int ReadShort(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 
@@ -455,12 +455,12 @@ static int ReadShort(lua_State* L)
 static int WriteByte(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 	Lua()->CheckType(2, GLua::TYPE_NUMBER);
@@ -481,12 +481,12 @@ static int WriteByte(lua_State* L)
 static int ReadByte(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 
@@ -517,12 +517,12 @@ static int ReadByte(lua_State* L)
 static int Size(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 
@@ -540,12 +540,12 @@ static int Size(lua_State* L)
 static int Tell(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 
@@ -563,12 +563,12 @@ static int Tell(lua_State* L)
 static int Seek(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 	Lua()->CheckType(2, GLua::TYPE_NUMBER);
@@ -591,12 +591,12 @@ static int Seek(lua_State* L)
 static int EOB(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 
@@ -614,12 +614,12 @@ static int EOB(lua_State* L)
 static int Empty(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
 #if defined(_DEBUG)
 	Lua()->Msg("%s()\n", __FUNCTION__);
 #endif
-
-	if( !L )
-		return 0;
 
 	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 
