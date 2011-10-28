@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="79">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <logicalFolder name="GLSock" displayName="GLSock" projectFiles="true">
+      </logicalFolder>
+      <itemPath>BindingGLSock.cpp</itemPath>
+      <itemPath>BindingGLSock.h</itemPath>
+      <itemPath>BindingGLSockBuffer.cpp</itemPath>
+      <itemPath>BindingGLSockBuffer.h</itemPath>
+      <itemPath>BufferMgr.cpp</itemPath>
+      <itemPath>BufferMgr.h</itemPath>
+      <itemPath>CAutoUnRef.h</itemPath>
+      <itemPath>GLSock.cpp</itemPath>
+      <itemPath>GLSock.h</itemPath>
+      <itemPath>GLSockAcceptor.cpp</itemPath>
+      <itemPath>GLSockAcceptor.h</itemPath>
+      <itemPath>GLSockBuffer.cpp</itemPath>
+      <itemPath>GLSockBuffer.h</itemPath>
+      <itemPath>GLSockTCP.cpp</itemPath>
+      <itemPath>GLSockTCP.h</itemPath>
+      <itemPath>GLSockUDP.cpp</itemPath>
+      <itemPath>GLSockUDP.h</itemPath>
+      <itemPath>GMLuaModule.h</itemPath>
+      <itemPath>ILuaInterface.h</itemPath>
+      <itemPath>ILuaModuleManager.h</itemPath>
+      <itemPath>ILuaObject.h</itemPath>
+      <itemPath>ILuaShared.h</itemPath>
+      <itemPath>Lock.h</itemPath>
+      <itemPath>Makefile</itemPath>
+      <itemPath>SockMgr.cpp</itemPath>
+      <itemPath>SockMgr.h</itemPath>
+      <itemPath>main.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceRootList>
+    <Elem>/home/matt/NetBeansProjects/GLSock</Elem>
+  </sourceRootList>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>default</compilerSet>
+        <rebuildPropChanged>true</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <ccTool>
+          <incDir>
+            <pElem>../../boost_1_42_0</pElem>
+          </incDir>
+        </ccTool>
+        <linkerTool>
+          <output>${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/gm_glsock_linux.dll</output>
+          <linkerAddLib>
+            <pElem>/home/matt/boost_1_42_0/stage/lib</pElem>
+          </linkerAddLib>
+          <linkerLibItems>
+            <linkerOptionItem>-static</linkerOptionItem>
+            <linkerLibLibItem>boost_regex-gcc46-mt-sd-1_42</linkerLibLibItem>
+            <linkerLibLibItem>boost_serialization-gcc46-mt-sd-1_42</linkerLibLibItem>
+            <linkerLibLibItem>boost_thread-gcc46-mt-sd-1_42</linkerLibLibItem>
+            <linkerLibLibItem>boost_date_time-gcc46-mt-sd-1_42</linkerLibLibItem>
+            <linkerLibLibItem>boost_system-gcc46-mt-sd-1_42</linkerLibLibItem>
+          </linkerLibItems>
+          <commandLine>-lpthread -static-libgcc -static-libstdc++</commandLine>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Release" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>default</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>../../boost_1_42_0</pElem>
+          </incDir>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+        <linkerTool>
+          <output>${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/gm_glsock_linux.dll</output>
+          <linkerAddLib>
+            <pElem>/home/matt/boost_1_42_0/stage/lib</pElem>
+          </linkerAddLib>
+          <linkerLibItems>
+            <linkerOptionItem>-static</linkerOptionItem>
+            <linkerLibLibItem>boost_date_time-gcc46-mt-s-1_42</linkerLibLibItem>
+            <linkerLibLibItem>boost_regex-gcc46-mt-s-1_42</linkerLibLibItem>
+            <linkerLibLibItem>boost_serialization-gcc46-s-1_42</linkerLibLibItem>
+            <linkerLibLibItem>boost_system-gcc46-mt-s-1_42</linkerLibLibItem>
+            <linkerLibLibItem>boost_thread-gcc46-mt-s-1_42</linkerLibLibItem>
+          </linkerLibItems>
+          <commandLine>-lpthread -static-libgcc -static-libstdc++</commandLine>
+        </linkerTool>
+      </compileType>
+    </conf>
+  </confs>
+</configurationDescriptor>

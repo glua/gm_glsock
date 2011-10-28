@@ -19,7 +19,7 @@ class ILuaModuleManager
 {
 	public:
 
-		virtual ILuaInterface*	GetLuaInterface( lua_State* pState ) = 0;
+		virtual ILuaInterface003*	GetLuaInterface( lua_State* pState ) = 0;
 		virtual const char*		GetBaseFolder( void ) = 0;
 };
 

@@ -10,7 +10,7 @@
 #define SOCKBUFFER_SEEK_CUR		3
 
 #define GLSOCKBUFFER_NAME		"GLSockBuffer"
-#define GLSOCKBUFFER_TYPE		0x93841 + 10
+#define GLSOCKBUFFER_TYPE		52893
 
 namespace GLSockBuffer {
 

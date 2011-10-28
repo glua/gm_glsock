@@ -23,7 +23,7 @@
 namespace GLSock {
 
 #define GLSOCK_NAME							"GLSock"
-#define GLSOCK_TYPE							'GLSK'
+#define GLSOCK_TYPE							59313
 
 // Socket Types
 enum ESockType

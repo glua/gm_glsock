@@ -111,7 +111,7 @@ static int Read(lua_State* L)
 	if( nReadBytes > 0 )
 	{
 		Lua()->PushLong(nReadBytes);
-		Lua()->Push(szData);
+		Lua()->PushDataString(szData, nReadBytes);
 	}
 	else
 	{

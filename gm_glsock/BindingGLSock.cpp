@@ -95,6 +95,8 @@ static int Bind(lua_State* L)
 	Lua()->CheckType(3, GLua::TYPE_NUMBER);
 	Lua()->CheckType(4, GLua::TYPE_FUNCTION);
 
+        boost::system::error_code ex;
+        
 	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
 	if( !g_pSockMgr->ValidHandle(pSock) )
 	{
@@ -106,15 +108,13 @@ static int Bind(lua_State* L)
 	unsigned short usPort = (unsigned short)Lua()->GetInteger(3);
 	Callback_t nCallback = Lua()->GetReference(4);
 
-	unsigned int nHost = INADDR_ANY;
-
 	// Not the best solution but its the best to keep TCP/UDP in a compatible method of the call method.
 	CEndpoint* pEndpoint = NULL;
 	if( !strHost.empty() )
 	{
 		// Conversation from string to long
 		boost::asio::ip::address_v4 v4;
-		v4.from_string(strHost);
+		v4.from_string(strHost, ex);
 
 		pEndpoint = new CEndpoint( v4.to_ulong(), usPort );
 	}
@@ -125,6 +125,14 @@ static int Bind(lua_State* L)
 		pEndpoint = new CEndpoint( endpoint.address().to_v4().to_ulong(), usPort );
 	}
 
+        if( ex )
+        {
+            if( pEndpoint )
+                delete pEndpoint;
+            return 0;
+        }
+        
+        pSock->Reference();
 	Lua()->Push( pSock->Bind(*pEndpoint, nCallback) );
 
 	delete pEndpoint;
@@ -156,7 +164,9 @@ static int Listen(lua_State* L)
 	int iBacklog = Lua()->GetInteger(2);
 	Callback_t nCallback = Lua()->GetReference(3);
 
+        pSock->Reference();
 	Lua()->Push( pSock->Listen(iBacklog, nCallback) );
+        
 	return 1;
 }
 
@@ -182,7 +192,9 @@ static int Accept(lua_State* L)
 
 	Callback_t nCallback = Lua()->GetReference(2);
 
+        pSock->Reference();
 	Lua()->Push( pSock->Accept(nCallback) );
+        
 	return 1;
 }
 
@@ -217,6 +229,7 @@ static int Connect(lua_State* L)
 	Lua()->Msg("Connecting to Host '%s:%u' Callback: %p\n", strHost.c_str(), usPort, nCallback);
 #endif
 
+        pSock->Reference();
 	Lua()->Push( pSock->Connect(strHost, boost::lexical_cast<std::string>(usPort), nCallback) );
 
 	return 1;
@@ -247,7 +260,9 @@ static int Send(lua_State* L)
 
 	Callback_t nCallback = Lua()->GetReference(3);
 
+        pSock->Reference();
 	Lua()->Push( pSock->Send(pBuffer->Buffer(), pBuffer->Size(), nCallback) );
+        
 	return 1;
 }
 
@@ -281,7 +296,9 @@ static int SendTo(lua_State* L)
 
 	Callback_t nCallback = Lua()->GetReference(3);
 
+        pSock->Reference();
 	Lua()->Push( pSock->SendTo(pBuffer->Buffer(), pBuffer->Size(), strHost, strPort, nCallback) );
+        
 	return 1;
 }
 
@@ -309,7 +326,9 @@ static int Read(lua_State* L)
 	int iCount = Lua()->GetInteger(2);
 	Callback_t nCallback = Lua()->GetReference(3);
 
+        pSock->Reference();
 	Lua()->Push( pSock->Read(iCount, nCallback) );
+        
 	return 1;
 }
 
@@ -337,7 +356,9 @@ static int ReadUntil(lua_State* L)
 	const char* pszDelimiter = Lua()->GetString(2);
 	Callback_t nCallback = Lua()->GetReference(3);
 
+        pSock->Reference();
 	Lua()->Push( pSock->ReadUntil(pszDelimiter, nCallback) );
+        
 	return 1;
 }
 
@@ -366,7 +387,9 @@ static int ReadFrom(lua_State* L)
 	int iCount = Lua()->GetInteger(2);
 	Callback_t nCallback = Lua()->GetReference(3);
 
+        pSock->Reference();
 	Lua()->Push( pSock->ReadFrom(iCount, nCallback) );
+        
 	return 1;
 }
 
@@ -411,7 +434,9 @@ static int Close(lua_State* L)
 		return 0;
 	}
 
+        pSock->Reference();
 	Lua()->Push( pSock->Close() );
+        
 	return 1;
 }
 
@@ -434,7 +459,9 @@ static int Cancel(lua_State* L)
 		return 0;
 	}
 
+        pSock->Reference();
 	Lua()->Push( pSock->Cancel() );
+        
 	return 1;
 }
 
