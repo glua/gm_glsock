@@ -34,7 +34,7 @@ GLSock.Connect(host, port, callback(handle, errno))
 	    Starts a connection to the host. Host will be resolved when its a hostname
 		When the connection was established, errno will be GLSOCK_ERROR_SUCCESS
 		
-		Always fails on GLSOCK_TYPE_ACCEPTOR and GLSOCK_TYPE_TCP and GLSOCK_TYPE_UDP
+		Always fails on GLSOCK_TYPE_ACCEPTOR and GLSOCK_TYPE_UDP
 	Returns:
 	    boolean
 		
@@ -122,7 +122,7 @@ GLSockBuffer.Read(count)
 		limitation of the lua interfaces exposed from Garry's Mod. It is more
 		practicable to use the specific function.
 	Returns:
-	    string
+	    long, string
 
 GLSockBuffer.WriteString(string)
 GLSockBuffer.ReadString()
