@@ -294,9 +294,10 @@ static int SendTo(lua_State* L)
 	std::string strHost( Lua()->GetString(3) );
 	std::string strPort = boost::lexical_cast<std::string>( (unsigned int)Lua()->GetInteger(4) );
 
+	// TODO: FIX ME
 	Callback_t nCallback = Lua()->GetReference(3);
 
-        pSock->Reference();
+    pSock->Reference();
 	Lua()->Push( pSock->SendTo(pBuffer->Buffer(), pBuffer->Size(), strHost, strPort, nCallback) );
         
 	return 1;
@@ -326,7 +327,7 @@ static int Read(lua_State* L)
 	int iCount = Lua()->GetInteger(2);
 	Callback_t nCallback = Lua()->GetReference(3);
 
-        pSock->Reference();
+    pSock->Reference();
 	Lua()->Push( pSock->Read(iCount, nCallback) );
         
 	return 1;
