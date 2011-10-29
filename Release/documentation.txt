@@ -76,7 +76,8 @@ GLSock.ReadUntil(delimiter, callback(handle, buffer, errno))
 		
 GLSock.ReadFrom(bytes_to_read, callback(handle, sender_host, sender_port, buffer, errno))
     Description:
-	    Same as GLSock.Read
+	    Will start an asynchronous operation for reading. The callback occours as soon data
+	    is available. 
 		
 		Always fails on GLSOCK_TYPE_ACCETPR and GLSOCK_TYPE_TCP
 	Returns:
@@ -90,7 +91,8 @@ GLSock.Resolve(...)
 		
 GLSock.Cancel()
     Description:
-	    Cancels all pending asynchronous operations.
+	    Cancels all pending asynchronous operations. The callbacks will receive the error 
+	    GLSOCK_ERROR_OPERATIONABORTED
 	Returns:
 		boolean
 		
