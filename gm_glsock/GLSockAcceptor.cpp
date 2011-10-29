@@ -15,6 +15,8 @@ CGLSockAcceptor::CGLSockAcceptor( IOService_t& IOService_t, lua_State* pLua )
 
 void CGLSockAcceptor::CallbackBind(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L)
 {
+        pHandle->Reference();
+        
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
 	Lua()->PushReference(Callback);
@@ -65,6 +67,8 @@ bool CGLSockAcceptor::Bind( CEndpoint& Endpoint, Callback_t Callback )
 
 void CGLSockAcceptor::CallbackListen(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L) // Callback(Handle, Error)
 {
+        pHandle->Reference();
+        
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
 	Lua()->PushReference(Callback);
@@ -107,12 +111,24 @@ bool CGLSockAcceptor::Listen( int iBacklog, Callback_t Callback )
 
 bool CGLSockAcceptor::Accept( Callback_t Callback )
 {
-	CGLSockTCP* pSock = (CGLSockTCP*)g_pSockMgr->CreateTCPSock(L, false);
+	bool bResult = true;
 
-	m_Sock.async_accept(pSock->Socket(), 
-		boost::bind(&CGLSockAcceptor::OnAccept, this, Callback, pSock, boost::asio::placeholders::error));
+	try
+	{
+		CGLSockTCP* pSock = (CGLSockTCP*)g_pSockMgr->CreateTCPSock(L, false);
 
-	return true;
+		m_Sock.async_accept(pSock->Socket(), 
+			boost::bind(&CGLSockAcceptor::OnAccept, this, Callback, pSock, boost::asio::placeholders::error));
+	}
+	catch (boost::exception& ex)
+	{
+#if defined(_DEBUG)
+		Lua()->Msg("GLSock(Acceptor): %s\n",  boost::diagnostic_information(ex).c_str());
+#endif
+		bResult = false;
+	}
+
+	return bResult;
 }
 
 bool CGLSockAcceptor::Resolve( const char* cszHostname, Callback_t Callback )
@@ -158,6 +174,8 @@ void CGLSockAcceptor::Unreference( void )
 
 void CGLSockAcceptor::CallbackAccept(Callback_t Callback, CGLSock* pHandle, CGLSock* pSock, int iErrorMsg, lua_State* L)
 {
+        pHandle->Reference();
+        
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
 	Lua()->PushReference(Callback);

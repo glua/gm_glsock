@@ -15,6 +15,8 @@ CGLSockUDP::CGLSockUDP( IOService_t& IOService, lua_State* pLua )
 
 void CGLSockUDP::CallbackBind(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L)
 {
+        pHandle->Reference();
+        
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
 	Lua()->PushReference(Callback);
@@ -65,44 +67,67 @@ bool CGLSockUDP::Bind( CEndpoint& Endpoint, Callback_t Callback )
 
 bool CGLSockUDP::SendTo( const char* cbData, unsigned int cubBuffer, std::string strHost, std::string strPort, Callback_t Callback )
 {
-	UDPResolver_t::query query(strHost, strPort);
-	UDPResolver_t::iterator iterator = m_Resolver.resolve(query);
+	bool bResult = true;
 
-	char* pBuffer = new char[cubBuffer];
+	try
+	{
+		UDPResolver_t::query query(strHost, strPort);
+		UDPResolver_t::iterator iterator = m_Resolver.resolve(query);
 
-	boost::asio::ip::udp::endpoint ep = *iterator;
+		char* pBuffer = new char[cubBuffer];
 
+		boost::asio::ip::udp::endpoint ep = *iterator;
+
+	#if defined(_DEBUG)
+		Lua()->Msg("GLSock(UDP): Send attempt to %s:%u\n", ep.address().to_string().c_str(), ep.port());
+	#endif
+
+		m_Sock.async_send_to( boost::asio::buffer(cbData, cubBuffer),
+			ep,
+			boost::bind(&CGLSockUDP::OnSend, 
+			this, 
+			Callback, 
+			boost::asio::placeholders::bytes_transferred, 
+			boost::asio::placeholders::error, 
+			++iterator,
+			pBuffer,
+			cubBuffer
+			) 
+			);
+	}
+	catch (boost::exception& ex)
+	{
 #if defined(_DEBUG)
-	Lua()->Msg("GLSock(UDP): Send attempt to %s:%u\n", ep.address().to_string().c_str(), ep.port());
+		Lua()->Msg("GLSock(UDP): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
+		bResult = false;
+	}
 
-	m_Sock.async_send_to( boost::asio::buffer(cbData, cubBuffer),
-		ep,
-		boost::bind(&CGLSockUDP::OnSend, 
-		this, 
-		Callback, 
-		boost::asio::placeholders::bytes_transferred, 
-		boost::asio::placeholders::error, 
-		++iterator,
-		pBuffer,
-		cubBuffer
-		) 
-		);
-
-	return true;
+	return bResult;
 }
 
 bool CGLSockUDP::ReadFrom(unsigned int cubBuffer, Callback_t Callback )
 {
-	char* pData = new char[cubBuffer];
+        bool bResult = true;
+	try
+	{
+		char* pData = new char[cubBuffer];
 
-	boost::asio::ip::udp::endpoint* pEndpoint = new boost::asio::ip::udp::endpoint;
+		boost::asio::ip::udp::endpoint* pEndpoint = new boost::asio::ip::udp::endpoint;
 
-	m_Sock.async_receive_from(boost::asio::buffer(pData, cubBuffer),
-		*pEndpoint,
-		boost::bind(&CGLSockUDP::OnRead, this, Callback, pEndpoint, pData, boost::asio::placeholders::bytes_transferred, boost::asio::placeholders::error) );
+		m_Sock.async_receive_from(boost::asio::buffer(pData, cubBuffer),
+			*pEndpoint,
+			boost::bind(&CGLSockUDP::OnRead, this, Callback, pEndpoint, pData, boost::asio::placeholders::bytes_transferred, boost::asio::placeholders::error) );
+	}
+	catch (boost::exception& ex)
+	{
+#if defined(_DEBUG)
+		Lua()->Msg("GLSock(UDP): %s\n",  boost::diagnostic_information(ex).c_str());
+#endif
+		bResult = false;
+	}
 
-	return true;
+	return bResult;
 }
 
 bool CGLSockUDP::Resolve( const char* cszHostname, Callback_t Callback )
@@ -148,6 +173,8 @@ void CGLSockUDP::Unreference( void )
 
 void CGLSockUDP::CallbackSend( Callback_t Callback, CGLSock* pHandle, unsigned int cubBytes, int iErrorMsg, lua_State* L )
 {
+        pHandle->Reference();
+        
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
 	Lua()->PushReference(Callback);
@@ -202,6 +229,8 @@ void CGLSockUDP::CallbackRead( Callback_t Callback,
 	int iErrorMsg,
 	lua_State* L)
 {
+        pHandle->Reference();
+        
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
 	Lua()->PushReference(Callback);

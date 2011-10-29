@@ -48,7 +48,7 @@ public:
 	{
 		m_Sock.cancel();
 		m_Sock.close();
-		m_Sock.get_io_service().dispatch( boost::bind(&CGLSockTCP::OnDestroy, this));
+		m_Sock.io_service().dispatch( boost::bind(&CGLSockTCP::OnDestroy, this));
 	}
 
 private:

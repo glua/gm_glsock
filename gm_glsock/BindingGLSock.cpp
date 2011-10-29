@@ -294,10 +294,9 @@ static int SendTo(lua_State* L)
 	std::string strHost( Lua()->GetString(3) );
 	std::string strPort = boost::lexical_cast<std::string>( (unsigned int)Lua()->GetInteger(4) );
 
-	// TODO: FIX ME
-	Callback_t nCallback = Lua()->GetReference(3);
+	Callback_t nCallback = Lua()->GetReference(5);
 
-    pSock->Reference();
+        pSock->Reference();
 	Lua()->Push( pSock->SendTo(pBuffer->Buffer(), pBuffer->Size(), strHost, strPort, nCallback) );
         
 	return 1;
@@ -327,7 +326,7 @@ static int Read(lua_State* L)
 	int iCount = Lua()->GetInteger(2);
 	Callback_t nCallback = Lua()->GetReference(3);
 
-    pSock->Reference();
+        pSock->Reference();
 	Lua()->Push( pSock->Read(iCount, nCallback) );
         
 	return 1;
@@ -435,7 +434,7 @@ static int Close(lua_State* L)
 		return 0;
 	}
 
-        pSock->Reference();
+        //pSock->Reference();
 	Lua()->Push( pSock->Close() );
         
 	return 1;
@@ -460,7 +459,7 @@ static int Cancel(lua_State* L)
 		return 0;
 	}
 
-        pSock->Reference();
+        //pSock->Reference();
 	Lua()->Push( pSock->Cancel() );
         
 	return 1;
@@ -477,7 +476,11 @@ static int Poll(lua_State* L)
 
 void Startup( lua_State* L )
 {
-	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
+#if defined(_DEBUG)
+        Lua()->Msg("GLSock Debug Build");
+#endif
+    
+        CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 	{
 		CAutoUnRef Index = Lua()->GetNewTable();
 

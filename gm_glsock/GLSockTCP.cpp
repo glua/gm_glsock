@@ -16,6 +16,8 @@ CGLSockTCP::CGLSockTCP( IOService_t& IOService, lua_State* pLua, bool bOpen )
 
 void CGLSockTCP::CallbackBind(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L)
 {
+        pHandle->Reference();
+        
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
 	Lua()->PushReference(Callback);
@@ -91,30 +93,66 @@ bool CGLSockTCP::Connect( std::string strHost, std::string strPort, Callback_t C
 
 bool CGLSockTCP::Send( const char* cbData, unsigned int cubBuffer, Callback_t Callback )
 {
-	m_Sock.async_send( boost::asio::buffer(cbData, cubBuffer),
-		boost::bind(&CGLSockTCP::OnSend, this, Callback, boost::asio::placeholders::bytes_transferred, boost::asio::placeholders::error) );
+	bool bResult = true;
 
-	return true;
+	try
+	{
+		m_Sock.async_send( boost::asio::buffer(cbData, cubBuffer),
+			boost::bind(&CGLSockTCP::OnSend, this, Callback, boost::asio::placeholders::bytes_transferred, boost::asio::placeholders::error) );
+	}
+	catch (boost::exception& ex)
+	{
+#if defined(_DEBUG)
+		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
+#endif
+		bResult = false;
+	}
+
+	return bResult;
 }
 
 bool CGLSockTCP::Read( unsigned int cubBuffer, Callback_t Callback )
 {
-	char* pData = new char[cubBuffer];
+	bool bResult = true;
 
-	m_Sock.async_receive(boost::asio::buffer(pData, cubBuffer),
-		boost::bind(&CGLSockTCP::OnRead, this, Callback, pData, boost::asio::placeholders::bytes_transferred, boost::asio::placeholders::error) );
+	try
+	{
+		char* pData = new char[cubBuffer];
 
-	return true;
+		m_Sock.async_receive(boost::asio::buffer(pData, cubBuffer),
+			boost::bind(&CGLSockTCP::OnRead, this, Callback, pData, boost::asio::placeholders::bytes_transferred, boost::asio::placeholders::error) );
+	}
+	catch (boost::exception& ex)
+	{
+#if defined(_DEBUG)
+		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
+#endif
+		bResult = false;
+	}
+
+	return bResult;
 }
 
 bool CGLSockTCP::ReadUntil( const char* pszDelimiter, Callback_t Callback )
 {
-	boost::asio::streambuf* pStreamBuf = new boost::asio::streambuf;
+	bool bResult = true;
 
-	boost::asio::async_read_until(m_Sock, *pStreamBuf, pszDelimiter,
-		boost::bind(&CGLSockTCP::OnReadUntil, this, Callback, pStreamBuf, boost::asio::placeholders::bytes_transferred, boost::asio::placeholders::error));
+	try
+	{
+		boost::asio::streambuf* pStreamBuf = new boost::asio::streambuf;
 
-	return true;
+		boost::asio::async_read_until(m_Sock, *pStreamBuf, pszDelimiter,
+			boost::bind(&CGLSockTCP::OnReadUntil, this, Callback, pStreamBuf, boost::asio::placeholders::bytes_transferred, boost::asio::placeholders::error));
+	}
+	catch (boost::exception& ex)
+	{
+#if defined(_DEBUG)
+		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
+#endif
+		bResult = false;
+	}
+
+	return bResult;
 }
 
 bool CGLSockTCP::Resolve( const char* cszHostname, Callback_t Callback )
@@ -165,7 +203,9 @@ void CGLSockTCP::OnResolve( Callback_t Callback, const boost::system::error_code
 
 void CGLSockTCP::CallbackConnect( Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L )
 {
-	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
+        pHandle->Reference();
+        
+        CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
 	Lua()->PushReference(Callback);
 	Lua()->PushUserData(MetaTable, static_cast<void*>(pHandle));
@@ -209,6 +249,8 @@ void CGLSockTCP::OnConnect( Callback_t Callback, const boost::system::error_code
 
 void CGLSockTCP::CalllbackSend( Callback_t Callback, CGLSock* pHandle, unsigned int cubBytes, int iErrorMsg, lua_State* L )
 {
+        pHandle->Reference();
+        
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
 	Lua()->PushReference(Callback);
@@ -235,6 +277,8 @@ void CGLSockTCP::OnSend( Callback_t Callback, unsigned int cubBytes, const boost
 
 void CGLSockTCP::CallbackRead( Callback_t Callback, CGLSock* pHandle, GLSockBuffer::CGLSockBuffer* pBuffer, int iErrorMsg, lua_State* L)
 {
+        pHandle->Reference();
+        
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 	Lua()->PushReference(Callback);
 	Lua()->PushUserData(MetaTable, static_cast<void*>(pHandle));
