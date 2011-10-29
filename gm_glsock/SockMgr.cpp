@@ -19,7 +19,8 @@ CSockMgr::~CSockMgr( void )
 		//(*itr)->Destroy();
 		(*itr)->Cancel();
 		(*itr)->Close();
-		delete *itr;
+		(*itr)->Destroy();
+		//delete *itr;
 	}
 	
 	m_Mutex.unlock();

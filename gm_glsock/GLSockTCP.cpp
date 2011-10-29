@@ -191,7 +191,7 @@ void CGLSockTCP::Unreference( void )
 	m_nReferences--;
 	if( m_nReferences <= 0 )
 	{
-		g_pSockMgr->RemoveSock(this);
+		//g_pSockMgr->RemoveSock(this);
 		Destroy();
 	}
 }
@@ -351,6 +351,7 @@ void CGLSockTCP::OnReadUntil( Callback_t Callback, boost::asio::streambuf* pStre
 
 void CGLSockTCP::OnDestroy( void )
 {
+	g_pSockMgr->RemoveSock(this);
 	delete this;
 }
 

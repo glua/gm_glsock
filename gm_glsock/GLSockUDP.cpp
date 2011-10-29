@@ -166,7 +166,7 @@ void CGLSockUDP::Unreference( void )
 	m_nReferences--;
 	if( m_nReferences <= 0 )
 	{
-		g_pSockMgr->RemoveSock(this);
+		//g_pSockMgr->RemoveSock(this);
 		Destroy();
 	}
 }
@@ -286,6 +286,7 @@ void CGLSockUDP::OnRead( Callback_t Callback, boost::asio::ip::udp::endpoint* pS
 
 void CGLSockUDP::OnDestroy( void )
 {
+	g_pSockMgr->RemoveSock(this);
 	delete this;
 }
 
