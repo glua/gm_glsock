@@ -103,6 +103,12 @@ GLSock.Close()
 	Returns:
 	    boolean
 		
+GLSock.Destroy()
+	Description:
+		Closes the socket and destroys it on the next polling. The handle will be no longer valid.
+	Returns:
+		nil
+		
 -------------------------------------------------------------------------------------
 
 GLSockBuffer()

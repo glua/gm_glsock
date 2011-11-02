@@ -464,6 +464,31 @@ static int Resolve(lua_State* L)
 	return 0;
 }
 
+static int Cancel(lua_State* L)
+{
+	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
+#if defined(_DEBUG)
+	Lua()->Msg("%s()\n", __FUNCTION__);
+#endif
+
+	Lua()->CheckType(1, GLSOCK_TYPE);
+
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
+	if( !g_pSockMgr->ValidHandle(pSock) )
+	{
+		Lua()->LuaError("Invalid socket handle", 1);
+		return 0;
+	}
+
+	//pSock->Reference();
+	Lua()->Push( pSock->Cancel() );
+
+	return 1;
+}
+
 static int Close(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
@@ -489,7 +514,7 @@ static int Close(lua_State* L)
 	return 1;
 }
 
-static int Cancel(lua_State* L)
+static int Destroy(lua_State* L)
 {
 	// SCOPED_LOCK(g_pSockMgr->Mutex());
 	if( !L )
@@ -508,10 +533,9 @@ static int Cancel(lua_State* L)
 		return 0;
 	}
 
-	//pSock->Reference();
-	Lua()->Push( pSock->Cancel() );
-        
-	return 1;
+	pSock->Destroy();
+
+	return 0;
 }
 
 static int Poll(lua_State* L)
