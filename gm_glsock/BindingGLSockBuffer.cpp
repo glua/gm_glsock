@@ -65,6 +65,8 @@ static int Write(lua_State* L)
 		return 0;
 	}
 
+	if( Lua()->GetType(2) != GLua::TYPE_STRING )
+		return 0;
 	std::string strData( Lua()->GetString(2), Lua()->StringLength(2) );
 
 	Lua()->PushLong( pBuffer->Write(strData.c_str(), strData.size()) );
@@ -91,6 +93,8 @@ static int Read(lua_State* L)
 		return 0;
 	}
 
+	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
+		return 0;
 	unsigned int nReadBytes = Lua()->GetInteger(2);
 
 	const char* pData = pBuffer->Buffer();
@@ -143,6 +147,8 @@ static int WriteString(lua_State* L)
 		return 0;
 	}
 
+	if( Lua()->GetType(2) != GLua::TYPE_STRING )
+		return 0;
 	std::string strData( Lua()->GetString(2) );
 
 	Lua()->PushLong( pBuffer->Write(strData.c_str(), strData.size() + 1) );
@@ -224,6 +230,8 @@ static int WriteDouble(lua_State* L)
 		return 0;
 	}
 
+	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
+		return 0;
 	double nValue = Lua()->GetDouble(2);
 
 	Lua()->PushLong( pBuffer->Write(nValue) );
@@ -286,6 +294,8 @@ static int WriteFloat(lua_State* L)
 		return 0;
 	}
 
+	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
+		return 0;
 	float nValue = Lua()->GetNumber(2);
 
 	Lua()->PushLong( pBuffer->Write(nValue) );
@@ -348,6 +358,8 @@ static int WriteLong(lua_State* L)
 		return 0;
 	}
 
+	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
+		return 0;
 	unsigned int nValue = Lua()->GetInteger(2);
 
 	Lua()->PushLong( pBuffer->Write(nValue) );
@@ -410,6 +422,8 @@ static int WriteShort(lua_State* L)
 		return 0;
 	}
 
+	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
+		return 0;
 	unsigned short nValue = (unsigned short)Lua()->GetInteger(2);
 
 	Lua()->PushLong( pBuffer->Write(nValue) );
@@ -472,6 +486,8 @@ static int WriteByte(lua_State* L)
 		return 0;
 	}
 
+	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
+		return 0;
 	unsigned char nValue = (unsigned char)Lua()->GetInteger(2);
 
 	Lua()->PushLong( pBuffer->Write(nValue) );
@@ -581,7 +597,12 @@ static int Seek(lua_State* L)
 		return 0;
 	}
 
+	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
+		return 0;
 	unsigned int nPos = Lua()->GetInteger(2);
+
+	if( Lua()->GetType(3) != GLua::TYPE_NUMBER )
+		return 0;
 	unsigned int nMethod = Lua()->GetInteger(3);
 
 	Lua()->Push( pBuffer->Seek(nPos, nMethod) );

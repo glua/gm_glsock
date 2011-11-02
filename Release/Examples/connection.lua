@@ -8,6 +8,7 @@ function OnRead(sck, data, errno)
 		-- Keep reading
 		sck:Read(100, OnRead)
 	else
+		-- Do not keep reading, or this will end up in a recursive mess!
 		print("Read Error: "..tonumber(errno))
 	end
 end

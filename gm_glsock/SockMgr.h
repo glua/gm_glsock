@@ -29,11 +29,6 @@ public:
 	CSockMgr(void);
 	~CSockMgr(void);
 
-	/*
-	bool StartThread();
-	bool StopThread();
-	*/
-
 	GLSock::CGLSock* CreateAcceptorSock(lua_State* L);
 	GLSock::CGLSock* CreateTCPSock(lua_State* L, bool bOpen = true);
 	GLSock::CGLSock* CreateUDPSock(lua_State* L);
@@ -52,14 +47,20 @@ public:
 	void Poll(lua_State* L)
 	{
 		Mutex_t::scoped_lock lock(m_Mutex);
-
-		m_IOService.poll_one();
-
-		if( !m_Callbacks.empty() )
+		try
 		{
-			boost::function<void(lua_State*)> cb = m_Callbacks.top();
-			m_Callbacks.pop();
-			cb(L);
+			m_IOService.poll_one();
+
+			if( !m_Callbacks.empty() )
+			{
+				boost::function<void(lua_State*)> cb = m_Callbacks.top();
+				m_Callbacks.pop();
+				cb(L);
+			}
+		}
+		catch (boost::exception& ex)
+		{
+			Lua()->Msg("GLSock(Polling): %s\n",  boost::diagnostic_information(ex).c_str());
 		}
 	}
 

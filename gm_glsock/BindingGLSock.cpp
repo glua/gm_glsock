@@ -1,6 +1,7 @@
 #include "BindingGLSock.h"
 #include "SockMgr.h"
 #include "GLSockBuffer.h"
+#include "BufferMgr.h"
 
 namespace GLSock {
 
@@ -161,10 +162,15 @@ static int Listen(lua_State* L)
 		return 0;
 	}
 
+	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
+		return 0;
 	int iBacklog = Lua()->GetInteger(2);
+
+	if( Lua()->GetType(3) != GLua::TYPE_FUNCTION )
+		return 0;
 	Callback_t nCallback = Lua()->GetReference(3);
 
-        pSock->Reference();
+	pSock->Reference();
 	Lua()->Push( pSock->Listen(iBacklog, nCallback) );
         
 	return 1;
@@ -190,9 +196,11 @@ static int Accept(lua_State* L)
 		return 0;
 	}
 
+	if( Lua()->GetType(2) != GLua::TYPE_FUNCTION )
+		return 0;
 	Callback_t nCallback = Lua()->GetReference(2);
 
-        pSock->Reference();
+	pSock->Reference();
 	Lua()->Push( pSock->Accept(nCallback) );
         
 	return 1;
@@ -220,16 +228,23 @@ static int Connect(lua_State* L)
 		return 0;
 	}
 
+	if( Lua()->GetType(2) != GLua::TYPE_STRING )
+		return 0;
 	std::string strHost( Lua()->GetString(2) );
+
+	if( Lua()->GetType(3) != GLua::TYPE_NUMBER )
+		return 0;
 	unsigned short usPort = (unsigned short)Lua()->GetInteger(3);
 
+	if( Lua()->GetType(4) != GLua::TYPE_FUNCTION )
+		return 0;
 	Callback_t nCallback = Lua()->GetReference(4);
 
 #if defined(SOCK_DEBUG)
 	Lua()->Msg("Connecting to Host '%s:%u' Callback: %p\n", strHost.c_str(), usPort, nCallback);
 #endif
 
-        pSock->Reference();
+	pSock->Reference();
 	Lua()->Push( pSock->Connect(strHost, boost::lexical_cast<std::string>(usPort), nCallback) );
 
 	return 1;
@@ -257,10 +272,17 @@ static int Send(lua_State* L)
 	}
 
 	GLSockBuffer::CGLSockBuffer* pBuffer = reinterpret_cast<GLSockBuffer::CGLSockBuffer*>( Lua()->GetUserData(2) );
+	if( !g_pBufferMgr->ValidHandle(pBuffer) )
+	{
+		Lua()->LuaError("Invalid buffer handle", 1);
+		return 0;
+	}
 
+	if( Lua()->GetType(3) != GLua::TYPE_FUNCTION )
+		return 0;
 	Callback_t nCallback = Lua()->GetReference(3);
 
-        pSock->Reference();
+	pSock->Reference();
 	Lua()->Push( pSock->Send(pBuffer->Buffer(), pBuffer->Size(), nCallback) );
         
 	return 1;
@@ -290,13 +312,25 @@ static int SendTo(lua_State* L)
 	}
 
 	GLSockBuffer::CGLSockBuffer* pBuffer = reinterpret_cast<GLSockBuffer::CGLSockBuffer*>( Lua()->GetUserData(2) );
+	if( !g_pBufferMgr->ValidHandle(pBuffer) )
+	{
+		Lua()->LuaError("Invalid buffer handle", 1);
+		return 0;
+	}
 
+	if( Lua()->GetType(3) != GLua::TYPE_STRING )
+		return 0;
 	std::string strHost( Lua()->GetString(3) );
+
+	if( Lua()->GetType(4) != GLua::TYPE_NUMBER )
+		return 0;
 	std::string strPort = boost::lexical_cast<std::string>( (unsigned int)Lua()->GetInteger(4) );
 
+	if( Lua()->GetType(5) != GLua::TYPE_FUNCTION )
+		return 0;
 	Callback_t nCallback = Lua()->GetReference(5);
 
-        pSock->Reference();
+	pSock->Reference();
 	Lua()->Push( pSock->SendTo(pBuffer->Buffer(), pBuffer->Size(), strHost, strPort, nCallback) );
         
 	return 1;
@@ -323,10 +357,15 @@ static int Read(lua_State* L)
 		return 0;
 	}
 
+	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
+		return 0;
 	int iCount = Lua()->GetInteger(2);
+
+	if( Lua()->GetType(3) != GLua::TYPE_FUNCTION )
+		return 0;
 	Callback_t nCallback = Lua()->GetReference(3);
 
-        pSock->Reference();
+	pSock->Reference();
 	Lua()->Push( pSock->Read(iCount, nCallback) );
         
 	return 1;
@@ -353,10 +392,15 @@ static int ReadUntil(lua_State* L)
 		return 0;
 	}
 
+	if( Lua()->GetType(2) != GLua::TYPE_STRING )
+		return 0;
 	const char* pszDelimiter = Lua()->GetString(2);
+
+	if( Lua()->GetType(3) != GLua::TYPE_FUNCTION )
+		return 0;
 	Callback_t nCallback = Lua()->GetReference(3);
 
-        pSock->Reference();
+	pSock->Reference();
 	Lua()->Push( pSock->ReadUntil(pszDelimiter, nCallback) );
         
 	return 1;
@@ -384,10 +428,15 @@ static int ReadFrom(lua_State* L)
 		return 0;
 	}
 
+	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
+		return 0;
 	int iCount = Lua()->GetInteger(2);
+
+	if( Lua()->GetType(3) != GLua::TYPE_FUNCTION )
+		return 0;
 	Callback_t nCallback = Lua()->GetReference(3);
 
-        pSock->Reference();
+	pSock->Reference();
 	Lua()->Push( pSock->ReadFrom(iCount, nCallback) );
         
 	return 1;
@@ -434,7 +483,7 @@ static int Close(lua_State* L)
 		return 0;
 	}
 
-        //pSock->Reference();
+	//pSock->Reference();
 	Lua()->Push( pSock->Close() );
         
 	return 1;
@@ -459,7 +508,7 @@ static int Cancel(lua_State* L)
 		return 0;
 	}
 
-        //pSock->Reference();
+	//pSock->Reference();
 	Lua()->Push( pSock->Cancel() );
         
 	return 1;
