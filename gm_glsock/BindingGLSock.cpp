@@ -553,7 +553,7 @@ void Startup( lua_State* L )
         Lua()->Msg("GLSock Debug Build");
 #endif
     
-        CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
+	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 	{
 		CAutoUnRef Index = Lua()->GetNewTable();
 
@@ -630,6 +630,8 @@ void Startup( lua_State* L )
 
 void Cleanup( lua_State* L )
 {
+	g_pSockMgr->CloseSockets();
+
 	ILuaObject* hook = Lua()->GetGlobal("hook");
 	ILuaObject* hook_Remove = hook->GetMember("Remove");
 

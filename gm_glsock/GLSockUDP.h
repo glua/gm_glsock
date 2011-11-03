@@ -48,9 +48,10 @@ public:
 		boost::system::error_code ec;
 		try
 		{
-			m_Sock.cancel(ec);
+			//m_Sock.cancel(ec);
+			m_Sock.shutdown(boost::asio::ip::udp::socket::shutdown_both, ec);
 			m_Sock.close(ec);
-			m_Sock.get_io_service().dispatch(boost::bind(&CGLSockUDP::OnDestroy, this));
+			m_Sock.get_io_service().post(boost::bind(&CGLSockUDP::OnDestroy, this));
 		}
 		catch (boost::exception& ex)
 		{

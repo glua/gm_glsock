@@ -45,7 +45,7 @@ public:
 		{
 			m_Sock.cancel(ec);
 			m_Sock.close(ec);
-			m_Sock.get_io_service().dispatch(boost::bind(&CGLSockAcceptor::OnDestroy, this));
+			m_Sock.get_io_service().post(boost::bind(&CGLSockAcceptor::OnDestroy, this));
 		}
 		catch (boost::exception& ex)
 		{

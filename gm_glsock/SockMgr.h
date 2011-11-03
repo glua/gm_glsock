@@ -19,7 +19,7 @@ class CSockMgr
 
 private:
 	boost::asio::io_service m_IOService;
-	boost::asio::io_service::work m_Worker;
+	boost::asio::io_service::work* m_pWorker;
 	boost::thread m_Thread;
 	Mutex_t m_Mutex;
 	std::vector<GLSock::CGLSock*> m_vecSocks;
@@ -36,6 +36,8 @@ public:
 	bool RemoveSock(GLSock::CGLSock* pSock);
 	bool ValidHandle(GLSock::CGLSock* pSock);
 
+	bool CloseSockets();
+
 	template<typename T>
 	void StoreCallback(T cb)
 	{
@@ -50,7 +52,6 @@ public:
 		try
 		{
 			m_IOService.poll_one();
-
 			if( !m_Callbacks.empty() )
 			{
 				boost::function<void(lua_State*)> cb = m_Callbacks.top();
