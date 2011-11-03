@@ -59,7 +59,8 @@ bool CGLSockAcceptor::Bind( CEndpoint& Endpoint, Callback_t Callback )
 #endif
 		}
 
-		g_pSockMgr->StoreCallback( boost::bind(&CGLSockAcceptor::CallbackBind, this, Callback, this, TranslateErrorMessage(ec), _1) );
+		if( g_pSockMgr->ValidHandle(this) )
+			g_pSockMgr->StoreCallback( boost::bind(&CGLSockAcceptor::CallbackBind, this, Callback, this, TranslateErrorMessage(ec), _1) );
 	}
 	catch (boost::exception& ex)
 	{
@@ -102,8 +103,8 @@ bool CGLSockAcceptor::Listen( int iBacklog, Callback_t Callback )
 			Lua()->Msg("GLSock(Acceptor): %s\n", ec.message().c_str());
 #endif
 		}
-
-		g_pSockMgr->StoreCallback( boost::bind(&CGLSockAcceptor::CallbackListen, this, Callback, this, TranslateErrorMessage(ec), _1) );
+		if( g_pSockMgr->ValidHandle(this) )
+			g_pSockMgr->StoreCallback( boost::bind(&CGLSockAcceptor::CallbackListen, this, Callback, this, TranslateErrorMessage(ec), _1) );
 	}
 	catch (boost::exception& ex)
 	{
@@ -214,18 +215,22 @@ void CGLSockAcceptor::OnAccept( Callback_t Callback, CGLSockTCP* pSock, const bo
 #if defined(_DEBUG)
 		Lua()->Msg("GLSock(Acceptor): %s\n", ec.message().c_str());
 #endif
-		g_pSockMgr->RemoveSock(pSock);
-		delete pSock;
+		if( g_pSockMgr->ValidHandle(pSock) )
+		{
+			pSock->Close();
+			delete pSock;
+		}
 		pSock = NULL;
 	}
 
-	g_pSockMgr->StoreCallback( boost::bind(&CGLSockAcceptor::CallbackAccept, this, Callback, this, pSock, TranslateErrorMessage(ec), _1) );
+	if( g_pSockMgr->ValidHandle(this) )
+		g_pSockMgr->StoreCallback( boost::bind(&CGLSockAcceptor::CallbackAccept, this, Callback, this, pSock, TranslateErrorMessage(ec), _1) );
 }
 
 void CGLSockAcceptor::OnDestroy( void )
 {
-	g_pSockMgr->RemoveSock(this);
-	delete this;
+	if( g_pSockMgr->RemoveSock(this) )
+		delete this;
 }
 
 }

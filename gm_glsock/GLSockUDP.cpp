@@ -58,8 +58,8 @@ bool CGLSockUDP::Bind( CEndpoint& Endpoint, Callback_t Callback )
 			Lua()->Msg("GLSock(UDP): Bound to %s:%u\n", ep.address().to_string().c_str(), ep.port());
 #endif
 		}
-
-		g_pSockMgr->StoreCallback( boost::bind(&CGLSockUDP::CallbackBind, this, Callback, this, TranslateErrorMessage(ec), _1) );
+		if( g_pSockMgr->ValidHandle(this) )
+			g_pSockMgr->StoreCallback( boost::bind(&CGLSockUDP::CallbackBind, this, Callback, this, TranslateErrorMessage(ec), _1) );
 	}
 	catch (boost::exception& ex)
 	{
@@ -226,7 +226,8 @@ void CGLSockUDP::OnSend( Callback_t Callback, unsigned int cubBytes, const boost
 
 	delete[] pBuffer;
 
-	g_pSockMgr->StoreCallback( boost::bind(&CGLSockUDP::CallbackSend, this, Callback, this, cubBytes, TranslateErrorMessage(ec), _1) );
+	if( g_pSockMgr->ValidHandle(this) )
+		g_pSockMgr->StoreCallback( boost::bind(&CGLSockUDP::CallbackSend, this, Callback, this, cubBytes, TranslateErrorMessage(ec), _1) );
 }
 
 void CGLSockUDP::CallbackRead( Callback_t Callback, 
@@ -287,15 +288,16 @@ void CGLSockUDP::OnRead( Callback_t Callback, boost::asio::ip::udp::endpoint* pS
 
 	delete[] pData;
 
-	g_pSockMgr->StoreCallback( boost::bind(&CGLSockUDP::CallbackRead, this, Callback, this, pSender->address().to_string(), pSender->port(), pBuffer, TranslateErrorMessage(ec), _1) );
+	if( g_pSockMgr->ValidHandle(this) )
+		g_pSockMgr->StoreCallback( boost::bind(&CGLSockUDP::CallbackRead, this, Callback, this, pSender->address().to_string(), pSender->port(), pBuffer, TranslateErrorMessage(ec), _1) );
 
 	delete pSender;
 }
 
 void CGLSockUDP::OnDestroy( void )
 {
-	g_pSockMgr->RemoveSock(this);
-	delete this;
+	if( g_pSockMgr->RemoveSock(this) )
+		delete this;
 }
 
 }
