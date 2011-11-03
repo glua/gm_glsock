@@ -569,6 +569,7 @@ void Startup( lua_State* L )
 		Index->SetMember("Resolve", GLSock::Resolve);
 		Index->SetMember("Close", GLSock::Close);
 		Index->SetMember("Cancel", GLSock::Cancel);
+		Index->SetMember("Destroy", GLSock::Destroy);
 
 		MetaTable->SetMember("__index", Index);
 	}

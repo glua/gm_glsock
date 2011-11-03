@@ -24,8 +24,9 @@ public:
 	virtual bool Close(void);
 	virtual bool Cancel(void)
 	{
-		m_Sock.cancel();
-		return true;
+		boost::system::error_code ec;
+		m_Sock.cancel(ec);
+		return ec.value() == 0;
 	}
 	virtual int Type(void)
 	{
@@ -39,9 +40,19 @@ public:
 	virtual void Unreference(void);
 	virtual void Destroy(void)
 	{
-		m_Sock.cancel();
-		m_Sock.close();
-		m_Sock.get_io_service().dispatch( boost::bind(&CGLSockAcceptor::OnDestroy, this));
+		boost::system::error_code ec;
+		try
+		{
+			m_Sock.cancel(ec);
+			m_Sock.close(ec);
+			m_Sock.get_io_service().dispatch(boost::bind(&CGLSockAcceptor::OnDestroy, this));
+		}
+		catch (boost::exception& ex)
+		{
+#if defined(_DEBUG)
+			Lua()->Msg("GLSock(Acceptor): %s\n",  boost::diagnostic_information(ex).c_str());
+#endif
+		}
 	}
 
 private:

@@ -10,13 +10,20 @@ CGLSockTCP::CGLSockTCP( IOService_t& IOService, lua_State* pLua, bool bOpen )
 	L = pLua;
 	m_nReferences = 0;
 
-	if( bOpen )
-		m_Sock.open(boost::asio::ip::tcp::v4());
+	try
+	{
+		if( bOpen )
+			m_Sock.open(boost::asio::ip::tcp::v4());
+	}
+	catch (boost::exception& ex)
+	{
+		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
+	}
 }
 
 void CGLSockTCP::CallbackBind(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L)
 {
-        pHandle->Reference();
+	pHandle->Reference();
         
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
@@ -26,7 +33,7 @@ void CGLSockTCP::CallbackBind(Callback_t Callback, CGLSock* pHandle, int iErrorM
 
 	Lua()->Call(2, 0);
         
-        pHandle->Unreference();
+	pHandle->Unreference();
 }
 
 bool CGLSockTCP::Bind( CEndpoint& Endpoint, Callback_t Callback )
@@ -165,9 +172,10 @@ bool CGLSockTCP::Close( void )
 {
 	bool bResult = true;
 
+	boost::system::error_code ec;
 	try
 	{
-		m_Sock.cancel();
+		m_Sock.cancel(ec);
 		m_Sock.close();
 	}
 	catch (boost::exception& ex)
@@ -203,9 +211,9 @@ void CGLSockTCP::OnResolve( Callback_t Callback, const boost::system::error_code
 
 void CGLSockTCP::CallbackConnect( Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L )
 {
-        pHandle->Reference();
+	pHandle->Reference();
         
-        CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
+	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
 	Lua()->PushReference(Callback);
 	Lua()->PushUserData(MetaTable, static_cast<void*>(pHandle));
@@ -213,7 +221,7 @@ void CGLSockTCP::CallbackConnect( Callback_t Callback, CGLSock* pHandle, int iEr
 
 	Lua()->Call(2, 0);
         
-        pHandle->Unreference();
+	pHandle->Unreference();
 }
 
 void CGLSockTCP::OnConnect( Callback_t Callback, const boost::system::error_code& ec, TCPResolver_t::iterator endpoint_iterator )
@@ -249,7 +257,7 @@ void CGLSockTCP::OnConnect( Callback_t Callback, const boost::system::error_code
 
 void CGLSockTCP::CalllbackSend( Callback_t Callback, CGLSock* pHandle, unsigned int cubBytes, int iErrorMsg, lua_State* L )
 {
-        pHandle->Reference();
+	pHandle->Reference();
         
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
@@ -260,7 +268,7 @@ void CGLSockTCP::CalllbackSend( Callback_t Callback, CGLSock* pHandle, unsigned 
 
 	Lua()->Call(3, 0);
         
-        pHandle->Unreference();
+	pHandle->Unreference();
 }
 
 void CGLSockTCP::OnSend( Callback_t Callback, unsigned int cubBytes, const boost::system::error_code& ec )
@@ -277,7 +285,7 @@ void CGLSockTCP::OnSend( Callback_t Callback, unsigned int cubBytes, const boost
 
 void CGLSockTCP::CallbackRead( Callback_t Callback, CGLSock* pHandle, GLSockBuffer::CGLSockBuffer* pBuffer, int iErrorMsg, lua_State* L)
 {
-        pHandle->Reference();
+	pHandle->Reference();
         
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 	Lua()->PushReference(Callback);
@@ -299,7 +307,7 @@ void CGLSockTCP::CallbackRead( Callback_t Callback, CGLSock* pHandle, GLSockBuff
 	Lua()->Push((float)iErrorMsg);
 	Lua()->Call(3, 0);
         
-        pHandle->Unreference();
+	pHandle->Unreference();
 }
 
 void CGLSockTCP::OnRead( Callback_t Callback, const char* pData, unsigned int cubBytes, const boost::system::error_code& ec )

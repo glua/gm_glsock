@@ -10,12 +10,19 @@ CGLSockUDP::CGLSockUDP( IOService_t& IOService, lua_State* pLua )
 	L = pLua;
 	m_nReferences = 0;
 
-	m_Sock.open(boost::asio::ip::udp::v4());
+	try
+	{
+		m_Sock.open(boost::asio::ip::udp::v4());
+	}
+	catch (boost::exception& ex)
+	{
+		Lua()->Msg("GLSock(UDP): %s\n",  boost::diagnostic_information(ex).c_str());
+	}
 }
 
 void CGLSockUDP::CallbackBind(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L)
 {
-        pHandle->Reference();
+	pHandle->Reference();
         
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
@@ -25,7 +32,7 @@ void CGLSockUDP::CallbackBind(Callback_t Callback, CGLSock* pHandle, int iErrorM
 
 	Lua()->Call(2, 0);
         
-        pHandle->Unreference();
+	pHandle->Unreference();
 }
 
 bool CGLSockUDP::Bind( CEndpoint& Endpoint, Callback_t Callback )
@@ -108,7 +115,7 @@ bool CGLSockUDP::SendTo( const char* cbData, unsigned int cubBuffer, std::string
 
 bool CGLSockUDP::ReadFrom(unsigned int cubBuffer, Callback_t Callback )
 {
-        bool bResult = true;
+	bool bResult = true;
 	try
 	{
 		char* pData = new char[cubBuffer];
@@ -140,9 +147,10 @@ bool CGLSockUDP::Close( void )
 {
 	bool bResult = true;
 
+	boost::system::error_code ec;
 	try
 	{
-		m_Sock.cancel();
+		m_Sock.cancel(ec);
 		m_Sock.close();
 	}
 	catch (boost::exception& ex)
@@ -173,7 +181,7 @@ void CGLSockUDP::Unreference( void )
 
 void CGLSockUDP::CallbackSend( Callback_t Callback, CGLSock* pHandle, unsigned int cubBytes, int iErrorMsg, lua_State* L )
 {
-        pHandle->Reference();
+	pHandle->Reference();
         
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
@@ -184,7 +192,7 @@ void CGLSockUDP::CallbackSend( Callback_t Callback, CGLSock* pHandle, unsigned i
 
 	Lua()->Call(3, 0);
         
-        pHandle->Unreference();
+	pHandle->Unreference();
 }
 
 void CGLSockUDP::OnSend( Callback_t Callback, unsigned int cubBytes, const boost::system::error_code& ec, UDPResolver_t::iterator iterator, const char* pBuffer, unsigned int cubBuffer )
@@ -229,7 +237,7 @@ void CGLSockUDP::CallbackRead( Callback_t Callback,
 	int iErrorMsg,
 	lua_State* L)
 {
-        pHandle->Reference();
+	pHandle->Reference();
         
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
@@ -257,7 +265,7 @@ void CGLSockUDP::CallbackRead( Callback_t Callback,
 	Lua()->Push((float)iErrorMsg);
 	Lua()->Call(5, 0);
         
-        pHandle->Unreference();
+	pHandle->Unreference();
 }
 
 void CGLSockUDP::OnRead( Callback_t Callback, boost::asio::ip::udp::endpoint* pSender, const char* pData, unsigned int cubBytes, const boost::system::error_code& ec )

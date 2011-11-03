@@ -9,13 +9,20 @@ CGLSockAcceptor::CGLSockAcceptor( IOService_t& IOService_t, lua_State* pLua )
 	L = pLua;
 	m_nReferences = 0;
 
-	m_Sock.open(boost::asio::ip::tcp::v4());
-	m_Sock.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+	try
+	{
+		m_Sock.open(boost::asio::ip::tcp::v4());
+		m_Sock.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+	}
+	catch (boost::exception& ex)
+	{
+		Lua()->Msg("GLSock(Acceptor): %s\n",  boost::diagnostic_information(ex).c_str());
+	}
 }
 
 void CGLSockAcceptor::CallbackBind(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L)
 {
-        pHandle->Reference();
+	pHandle->Reference();
         
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
@@ -25,7 +32,7 @@ void CGLSockAcceptor::CallbackBind(Callback_t Callback, CGLSock* pHandle, int iE
 
 	Lua()->Call(2, 0);
         
-        pHandle->Unreference();
+	pHandle->Unreference();
 }
 
 bool CGLSockAcceptor::Bind( CEndpoint& Endpoint, Callback_t Callback )
@@ -67,7 +74,7 @@ bool CGLSockAcceptor::Bind( CEndpoint& Endpoint, Callback_t Callback )
 
 void CGLSockAcceptor::CallbackListen(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L) // Callback(Handle, Error)
 {
-        pHandle->Reference();
+	pHandle->Reference();
         
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
@@ -77,7 +84,7 @@ void CGLSockAcceptor::CallbackListen(Callback_t Callback, CGLSock* pHandle, int 
 
 	Lua()->Call(2, 0);
         
-        pHandle->Unreference();
+	pHandle->Unreference();
 }
 
 bool CGLSockAcceptor::Listen( int iBacklog, Callback_t Callback )
@@ -141,9 +148,10 @@ bool CGLSockAcceptor::Close( void )
 {
 	bool bResult = true;
 
+	boost::system::error_code ec;
 	try
 	{
-		m_Sock.cancel();
+		m_Sock.cancel(ec);
 		m_Sock.close();
 	}
 	catch (boost::exception& ex)
@@ -174,7 +182,7 @@ void CGLSockAcceptor::Unreference( void )
 
 void CGLSockAcceptor::CallbackAccept(Callback_t Callback, CGLSock* pHandle, CGLSock* pSock, int iErrorMsg, lua_State* L)
 {
-        pHandle->Reference();
+	pHandle->Reference();
         
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 
@@ -196,7 +204,7 @@ void CGLSockAcceptor::CallbackAccept(Callback_t Callback, CGLSock* pHandle, CGLS
 	Lua()->Push((float)iErrorMsg);
 	Lua()->Call(3, 0);
         
-        //pHandle->Unreference();
+	//pHandle->Unreference();
 }
 
 void CGLSockAcceptor::OnAccept( Callback_t Callback, CGLSockTCP* pSock, const boost::system::error_code& ec )
