@@ -12,7 +12,8 @@
 #define GLSOCKBUFFER_NAME		"GLSockBuffer"
 #define GLSOCKBUFFER_TYPE		52893
 
-#include <sstream>
+#include <string>
+#include <cstring>
 
 namespace GLSockBuffer {
 
