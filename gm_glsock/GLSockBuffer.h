@@ -12,15 +12,18 @@
 #define GLSOCKBUFFER_NAME		"GLSockBuffer"
 #define GLSOCKBUFFER_TYPE		52893
 
+#include <sstream>
+
 namespace GLSockBuffer {
 
 class CGLSockBuffer
 {
 private:
-	char* m_pData;
-	unsigned int m_cubData;
+	//char* m_pData;
+	//unsigned int m_cubData;
+	//bool m_fOwner;
 	unsigned int m_nOffset;
-	bool m_fOwner;
+	std::string m_Buf;
 	int m_nReferences;
 
 public:
@@ -47,7 +50,7 @@ public:
 	unsigned int Tell(void);
 	unsigned int Size(void);
 
-	const char* Buffer(void);
+	const char* Buffer( void );
 
 	bool EOB();
 	bool Empty();

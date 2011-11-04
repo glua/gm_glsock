@@ -82,6 +82,7 @@ bool CGLSockUDP::SendTo( const char* cbData, unsigned int cubBuffer, std::string
 		UDPResolver_t::iterator iterator = m_Resolver.resolve(query);
 
 		char* pBuffer = new char[cubBuffer];
+		memcpy(pBuffer, cbData, cubBuffer);
 
 		boost::asio::ip::udp::endpoint ep = *iterator;
 
@@ -89,7 +90,7 @@ bool CGLSockUDP::SendTo( const char* cbData, unsigned int cubBuffer, std::string
 		Lua()->Msg("GLSock(UDP): Send attempt to %s:%u\n", ep.address().to_string().c_str(), ep.port());
 	#endif
 
-		m_Sock.async_send_to( boost::asio::buffer(cbData, cubBuffer),
+		m_Sock.async_send_to( boost::asio::buffer(pBuffer, cubBuffer),
 			ep,
 			boost::bind(&CGLSockUDP::OnSend, 
 			this, 

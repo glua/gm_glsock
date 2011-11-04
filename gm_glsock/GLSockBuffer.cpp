@@ -5,92 +5,49 @@ namespace GLSockBuffer {
 
 CGLSockBuffer::CGLSockBuffer( const char* pData, unsigned int cubBuffer )
 {
-	m_pData = (char*)pData;
-	m_cubData = cubBuffer;
-	m_nOffset = 0;
-	m_fOwner = false;	// Won't delete on dtor
+	m_nOffset = 0;	
 	m_nReferences = 0;
+
+	m_Buf.assign(pData, cubBuffer);
 }
 
 CGLSockBuffer::CGLSockBuffer( void )
 {
-	m_pData = 0;
-	m_cubData = 0;
 	m_nOffset = 0;
-	m_fOwner = true;	// Will delete on dtor
 	m_nReferences = 0;
 }
 
 CGLSockBuffer::~CGLSockBuffer( void )
 {
-	if( m_fOwner )
-	{
-		if( m_pData )
-			delete[] m_pData;
-	}
 }
 
 unsigned int CGLSockBuffer::Write( const char* pData, unsigned int cubBuffer )
 {
-	if( !m_fOwner )
-		return 0;
-
-	if( !m_pData )
+	unsigned int nSpaceLeft = (m_Buf.size() - m_nOffset);
+	if( nSpaceLeft < cubBuffer )
 	{
-		m_pData = new char[cubBuffer + 1];
-		m_cubData = cubBuffer;
-	}
-	else
-	{
-		unsigned int nSpaceAvailable = m_cubData - m_nOffset;
-		unsigned int nAllocSize = cubBuffer;
-
-		if( nSpaceAvailable > cubBuffer )
-			nAllocSize = 0;
-		else
-			nAllocSize = cubBuffer - nSpaceAvailable;
-
-		if( nAllocSize > 0 )
-		{
-			char* pBuffer = new char[m_cubData + nAllocSize + 1];
-
-			for(unsigned int i = 0; i < m_cubData; i++)
-				pBuffer[i] = m_pData[i];
-
-			delete[] m_pData;
-			m_pData = pBuffer;
-
-			m_cubData += nAllocSize;
-		}
+		m_Buf.resize(m_Buf.size() + (cubBuffer - nSpaceLeft));
 	}
 
-	for(unsigned int i = 0; i < cubBuffer; i++)
-		m_pData[m_nOffset + i] = pData[i];
-
+	memcpy((char*)m_Buf.c_str() + m_nOffset, pData, cubBuffer);
 	m_nOffset += cubBuffer;
-	m_pData[m_cubData] = '\0';	// Terminate by 0
 
 	return cubBuffer;
 }
 
 unsigned int CGLSockBuffer::Read( char* pData, unsigned int cubBuffer, bool bMatchSize)
 {
-	if( !m_pData )
-		return 0;
-
 	unsigned int nRead = cubBuffer;
-	if( m_cubData - m_nOffset < nRead )
+	if( m_nOffset + nRead > m_Buf.size() )
 	{
 		if( bMatchSize )
 			return 0;
-
-		nRead = m_cubData - m_nOffset;
+		nRead = m_Buf.size() - m_nOffset;
 	}
 
-	for(unsigned int i = 0; i < nRead; i++)
-		pData[i] = m_pData[m_nOffset + i];
-
+	memcpy(pData, m_Buf.c_str() + m_nOffset, nRead);
 	m_nOffset += nRead;
+
 	return nRead;
 }
 
@@ -100,26 +57,23 @@ bool CGLSockBuffer::Seek( unsigned int nOffset, unsigned int nMethod )
 	{
 	case SOCKBUFFER_SEEK_SET:
 		{
-			if( nOffset > m_cubData )
+			if( nOffset > m_Buf.size() )
 				return false;
-
 			m_nOffset = nOffset;
 		}
 		break;
 	case SOCKBUFFER_SEEK_CUR:
 		{
-			if( m_nOffset + nOffset > m_cubData )
+			if( m_nOffset + nOffset > m_Buf.size() )
 				return false;
-
 			m_nOffset += nOffset;
 		}
 		break;
 	case SOCKBUFFER_SEEK_END:
 		{
-			if( nOffset > m_cubData )
+			if( nOffset > m_Buf.size() )
 				return false;
-
-			m_nOffset = m_cubData - nOffset;
+			m_nOffset = m_Buf.size() - nOffset;
 		}
 		break;
 	default:
@@ -136,22 +90,22 @@ unsigned int CGLSockBuffer::Tell( void )
 
 unsigned int CGLSockBuffer::Size( void )
 {
-	return m_cubData;
+	return m_Buf.size();
 }
 
 const char* CGLSockBuffer::Buffer( void )
 {
-	return (const char*)m_pData;
+	return m_Buf.c_str();
 }
 
 bool CGLSockBuffer::EOB()
 {
-	return (m_nOffset >= m_cubData);
+	return m_nOffset == m_Buf.size();
 }
 
 bool CGLSockBuffer::Empty()
 {
-	return m_cubData == 0;
+	return m_Buf.empty();
 }
 
 void CGLSockBuffer::Reference()

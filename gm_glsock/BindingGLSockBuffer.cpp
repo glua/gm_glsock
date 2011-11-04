@@ -96,16 +96,6 @@ static int Read(lua_State* L)
 	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
 		return 0;
 	unsigned int nReadBytes = Lua()->GetInteger(2);
-
-	const char* pData = pBuffer->Buffer();
-	bool bValid = false;
-
-	if( !pData )
-	{
-		Lua()->PushLong(0);
-		Lua()->PushNil();
-		return 2;
-	}
 	
 	char* szData = new char[nReadBytes + 1];
 
@@ -124,6 +114,7 @@ static int Read(lua_State* L)
 	}
 
 	delete[] szData;
+
 	return 2;
 }
 
@@ -178,13 +169,6 @@ static int ReadString(lua_State* L)
 	const char* pData = pBuffer->Buffer();
 	bool bValid = false;
 
-	if( !pData )
-	{
-		Lua()->PushLong(0);
-		Lua()->PushNil();
-		return 2;
-	}
-
 	for(unsigned int i = pBuffer->Tell(); i < pBuffer->Size(); i++)
 	{
 		if( pData[i] == '\0' )
@@ -197,9 +181,13 @@ static int ReadString(lua_State* L)
 
 	if( bValid )
 	{
+		// Copy string.
 		Lua()->PushLong(uStringLength + 1);
 		std::string strData( pData + pBuffer->Tell(), uStringLength );
 		Lua()->Push(strData.c_str());
+
+		// Update position.
+		pBuffer->Seek(uStringLength + 1, SOCKBUFFER_SEEK_CUR);
 	}
 	else
 	{

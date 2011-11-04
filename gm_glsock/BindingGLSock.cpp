@@ -283,6 +283,7 @@ static int Send(lua_State* L)
 	Callback_t nCallback = Lua()->GetReference(3);
 
 	pSock->Reference();
+
 	Lua()->Push( pSock->Send(pBuffer->Buffer(), pBuffer->Size(), nCallback) );
         
 	return 1;
@@ -331,6 +332,7 @@ static int SendTo(lua_State* L)
 	Callback_t nCallback = Lua()->GetReference(5);
 
 	pSock->Reference();
+
 	Lua()->Push( pSock->SendTo(pBuffer->Buffer(), pBuffer->Size(), strHost, strPort, nCallback) );
         
 	return 1;
