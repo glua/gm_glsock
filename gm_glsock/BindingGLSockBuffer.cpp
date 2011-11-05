@@ -223,6 +223,17 @@ static int WriteDouble(lua_State* L)
 		return 0;
 	double nValue = Lua()->GetDouble(2);
 
+	if( Lua()->GetStackTop() >= 3 )
+	{
+		Lua()->CheckType(3, GLua::TYPE_BOOL);
+		if( Lua()->GetType(3) == GLua::TYPE_BOOL )
+		{
+			bool bSwap = Lua()->GetBool(3);
+			if( bSwap )
+				pBuffer->SwapEndian(nValue);
+		}
+	}
+
 	Lua()->PushLong( pBuffer->Write(nValue) );
 	return 1;
 }
@@ -248,6 +259,17 @@ static int ReadDouble(lua_State* L)
 
 	double nValue = 0;
 	unsigned int nRead = pBuffer->Read(nValue);
+
+	if( Lua()->GetStackTop() >= 2 )
+	{
+		Lua()->CheckType(2, GLua::TYPE_BOOL);
+		if( Lua()->GetType(2) == GLua::TYPE_BOOL )
+		{
+			bool bSwap = Lua()->GetBool(2);
+			if( bSwap )
+				pBuffer->SwapEndian(nValue);
+		}
+	}
 
 	if( nRead == 0 )
 	{
@@ -287,6 +309,17 @@ static int WriteFloat(lua_State* L)
 		return 0;
 	float nValue = Lua()->GetNumber(2);
 
+	if( Lua()->GetStackTop() >= 3 )
+	{
+		Lua()->CheckType(3, GLua::TYPE_BOOL);
+		if( Lua()->GetType(3) == GLua::TYPE_BOOL )
+		{
+			bool bSwap = Lua()->GetBool(3);
+			if( bSwap )
+				pBuffer->SwapEndian(nValue);
+		}
+	}
+
 	Lua()->PushLong( pBuffer->Write(nValue) );
 	return 1;
 }
@@ -312,6 +345,17 @@ static int ReadFloat(lua_State* L)
 
 	float nValue = 0;
 	unsigned int nRead = pBuffer->Read(nValue);
+
+	if( Lua()->GetStackTop() >= 2 )
+	{
+		Lua()->CheckType(2, GLua::TYPE_BOOL);
+		if( Lua()->GetType(2) == GLua::TYPE_BOOL )
+		{
+			bool bSwap = Lua()->GetBool(2);
+			if( bSwap )
+				pBuffer->SwapEndian(nValue);
+		}
+	}
 
 	if( nRead == 0 )
 	{

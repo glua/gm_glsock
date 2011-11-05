@@ -47,16 +47,16 @@ public:
 		return Read((char*)&Value, sizeof(T), true);
 	}
 
-	static void SwapEndian(unsigned int& val)
+	template<typename T>
+	static void SwapEndian(T& val)
 	{
-		val = (val >> 24) | 
-			((val << 8) & 0x00FF0000) | 
-			((val >> 8) & 0x0000FF00) | 
-			(val << 24);
-	}
-	static void SwapEndian(unsigned short& val)
-	{
-		val = (val >> 8 ) | (val << 8);
+		for(unsigned int i = 0; i < sizeof(T) / 2; i++)
+		{
+			std::swap(
+				((unsigned char*)&val)[i], 
+				((unsigned char*)&val)[sizeof(T) - 1 - i]
+			);
+		}
 	}
 
 	bool Seek(unsigned int nOffset, unsigned int nMethod);
