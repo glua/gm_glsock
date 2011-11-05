@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "GLSockTCP.h"
 #include "SockMgr.h"
 #include "BufferMgr.h"
@@ -66,6 +67,8 @@ bool CGLSockTCP::Bind( CEndpoint& Endpoint, Callback_t Callback )
 	{
 #if defined(_DEBUG)
 		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
+#else
+		UNREFERENCED_PARAM(ex);
 #endif
 		bResult = false;
 	}
@@ -91,6 +94,8 @@ bool CGLSockTCP::Connect( std::string strHost, std::string strPort, Callback_t C
 	{
 #if defined(_DEBUG)
 		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
+#else
+		UNREFERENCED_PARAM(ex);
 #endif
 		bResult = false;
 	}
@@ -111,6 +116,8 @@ bool CGLSockTCP::Send( const char* cbData, unsigned int cubBuffer, Callback_t Ca
 	{
 #if defined(_DEBUG)
 		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
+#else
+		UNREFERENCED_PARAM(ex);
 #endif
 		bResult = false;
 	}
@@ -133,6 +140,8 @@ bool CGLSockTCP::Read( unsigned int cubBuffer, Callback_t Callback )
 	{
 #if defined(_DEBUG)
 		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
+#else
+		UNREFERENCED_PARAM(ex);
 #endif
 		bResult = false;
 	}
@@ -155,6 +164,8 @@ bool CGLSockTCP::ReadUntil( const char* pszDelimiter, Callback_t Callback )
 	{
 #if defined(_DEBUG)
 		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
+#else
+		UNREFERENCED_PARAM(ex);
 #endif
 		bResult = false;
 	}
@@ -182,6 +193,8 @@ bool CGLSockTCP::Close( void )
 	{
 #if defined(_DEBUG)
 		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
+#else
+		UNREFERENCED_PARAM(ex);
 #endif
 		bResult = false;
 	}

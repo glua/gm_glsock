@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "BufferMgr.h"
 
 static CBufferMgr s_BufferMgr;

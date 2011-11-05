@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "BindingGLSockBuffer.h"
 #include "GLSockBuffer.h"
 #include "BufferMgr.h"
@@ -350,6 +351,17 @@ static int WriteLong(lua_State* L)
 		return 0;
 	unsigned int nValue = Lua()->GetInteger(2);
 
+	if( Lua()->GetStackTop() >= 3 )
+	{
+		Lua()->CheckType(3, GLua::TYPE_BOOL);
+		if( Lua()->GetType(3) == GLua::TYPE_BOOL )
+		{
+			bool bSwap = Lua()->GetBool(3);
+			if( bSwap )
+				pBuffer->SwapEndian(nValue);
+		}
+	}
+
 	Lua()->PushLong( pBuffer->Write(nValue) );
 	return 1;
 }
@@ -375,6 +387,17 @@ static int ReadLong(lua_State* L)
 
 	unsigned int nValue = 0;
 	unsigned int nRead = pBuffer->Read(nValue);
+
+	if( Lua()->GetStackTop() >= 2 )
+	{
+		Lua()->CheckType(2, GLua::TYPE_BOOL);
+		if( Lua()->GetType(2) == GLua::TYPE_BOOL )
+		{
+			bool bSwap = Lua()->GetBool(2);
+			if( bSwap )
+				pBuffer->SwapEndian(nValue);
+		}
+	}
 
 	if( nRead == 0 )
 	{
@@ -414,6 +437,17 @@ static int WriteShort(lua_State* L)
 		return 0;
 	unsigned short nValue = (unsigned short)Lua()->GetInteger(2);
 
+	if( Lua()->GetStackTop() >= 3 )
+	{
+		Lua()->CheckType(3, GLua::TYPE_BOOL);
+		if( Lua()->GetType(3) == GLua::TYPE_BOOL )
+		{
+			bool bSwap = Lua()->GetBool(3);
+			if( bSwap )
+				pBuffer->SwapEndian(nValue);
+		}
+	}
+
 	Lua()->PushLong( pBuffer->Write(nValue) );
 	return 1;
 }
@@ -439,6 +473,17 @@ static int ReadShort(lua_State* L)
 
 	unsigned short nValue = 0;
 	unsigned int nRead = pBuffer->Read(nValue);
+
+	if( Lua()->GetStackTop() >= 2 )
+	{
+		Lua()->CheckType(2, GLua::TYPE_BOOL);
+		if( Lua()->GetType(2) == GLua::TYPE_BOOL )
+		{
+			bool bSwap = Lua()->GetBool(2);
+			if( bSwap )
+				pBuffer->SwapEndian(nValue);
+		}
+	}
 
 	if( nRead == 0 )
 	{
@@ -643,6 +688,40 @@ static int Empty(lua_State* L)
 	return 1;
 }
 
+static int Clear(lua_State* L)
+{
+	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
+#if defined(_DEBUG)
+	Lua()->Msg("%s()\n", __FUNCTION__);
+#endif
+
+	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
+	Lua()->CheckType(2, GLua::TYPE_NUMBER);
+	Lua()->CheckType(3, GLua::TYPE_NUMBER);
+
+	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
+	if( !g_pBufferMgr->ValidHandle(pBuffer) )
+	{
+		Lua()->LuaError("Invalid buffer handle", 1);
+		return 0;
+	}
+
+	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
+		return 0;
+	unsigned int nPos = Lua()->GetInteger(2);
+
+	if( Lua()->GetType(3) != GLua::TYPE_NUMBER )
+		return 0;
+	unsigned int cSize = Lua()->GetInteger(3);
+
+	Lua()->Push( pBuffer->Clear(nPos, cSize) );
+
+	return 1;
+}
+
 void Startup( lua_State* L )
 {
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCKBUFFER_NAME, GLSOCKBUFFER_TYPE);
@@ -670,6 +749,7 @@ void Startup( lua_State* L )
 		Index->SetMember("Seek", GLSockBuffer::Seek);
 		Index->SetMember("EOB", GLSockBuffer::EOB);
 		Index->SetMember("Empty", GLSockBuffer::Empty);
+		Index->SetMember("Clear", GLSockBuffer::Clear);
 
 		MetaTable->SetMember("__index", Index);
 	}

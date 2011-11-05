@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "GLSock.h"
 
 namespace GLSock {

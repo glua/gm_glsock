@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "GLSockBuffer.h"
 #include "BufferMgr.h"
 
@@ -23,30 +24,46 @@ CGLSockBuffer::~CGLSockBuffer( void )
 
 unsigned int CGLSockBuffer::Write( const char* pData, unsigned int cubBuffer )
 {
-	unsigned int nSpaceLeft = (m_Buf.size() - m_nOffset);
-	if( nSpaceLeft < cubBuffer )
+	try
 	{
-		m_Buf.resize(m_Buf.size() + (cubBuffer - nSpaceLeft));
+		unsigned int nSpaceLeft = (m_Buf.size() - m_nOffset);
+		if( nSpaceLeft < cubBuffer )
+		{
+			m_Buf.resize(m_Buf.size() + (cubBuffer - nSpaceLeft));
+		}
+
+		memcpy((char*)m_Buf.c_str() + m_nOffset, pData, cubBuffer);
+		m_nOffset += cubBuffer;
 	}
-
-	memcpy((char*)m_Buf.c_str() + m_nOffset, pData, cubBuffer);
-	m_nOffset += cubBuffer;
-
+	catch (std::exception& ex)
+	{
+		UNREFERENCED_PARAM(ex);
+		return 0;
+	}
 	return cubBuffer;
 }
 
 unsigned int CGLSockBuffer::Read( char* pData, unsigned int cubBuffer, bool bMatchSize)
 {
 	unsigned int nRead = cubBuffer;
-	if( m_nOffset + nRead > m_Buf.size() )
-	{
-		if( bMatchSize )
-			return 0;
-		nRead = m_Buf.size() - m_nOffset;
-	}
 
-	memcpy(pData, m_Buf.c_str() + m_nOffset, nRead);
-	m_nOffset += nRead;
+	try
+	{
+		if( m_nOffset + nRead > m_Buf.size() )
+		{
+			if( bMatchSize )
+				return 0;
+			nRead = m_Buf.size() - m_nOffset;
+		}
+
+		memcpy(pData, m_Buf.c_str() + m_nOffset, nRead);
+		m_nOffset += nRead;
+	}
+	catch (std::exception& ex)
+	{
+		UNREFERENCED_PARAM(ex);
+		return 0;
+	}
 
 	return nRead;
 }
@@ -108,6 +125,20 @@ bool CGLSockBuffer::Empty()
 	return m_Buf.empty();
 }
 
+bool CGLSockBuffer::Clear( unsigned int nPos, unsigned int cSize )
+{
+	try
+	{
+		m_Buf.erase(nPos, cSize);
+	}
+	catch(std::exception& ex)
+	{
+		UNREFERENCED_PARAM(ex);
+		return false;
+	}
+	return true;
+}
+
 void CGLSockBuffer::Reference()
 {
 	m_nReferences++;
@@ -122,5 +153,6 @@ void CGLSockBuffer::Unreference()
 		delete this;
 	}
 }
+
 
 } // GLSockBuffer

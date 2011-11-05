@@ -47,6 +47,18 @@ public:
 		return Read((char*)&Value, sizeof(T), true);
 	}
 
+	static void SwapEndian(unsigned int& val)
+	{
+		val = (val >> 24) | 
+			((val << 8) & 0x00FF0000) | 
+			((val >> 8) & 0x0000FF00) | 
+			(val << 24);
+	}
+	static void SwapEndian(unsigned short& val)
+	{
+		val = (val >> 8 ) | (val << 8);
+	}
+
 	bool Seek(unsigned int nOffset, unsigned int nMethod);
 	unsigned int Tell(void);
 	unsigned int Size(void);
@@ -55,6 +67,8 @@ public:
 
 	bool EOB();
 	bool Empty();
+
+	bool Clear(unsigned int nPos, unsigned int cSize);
 
 	void Reference();
 	void Unreference();

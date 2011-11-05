@@ -51,6 +51,8 @@ public:
 		{
 #if defined(_DEBUG)
 			Lua()->Msg("GLSock(Acceptor): %s\n",  boost::diagnostic_information(ex).c_str());
+#else
+			UNREFERENCED_PARAM(ex);
 #endif
 		}
 	}

@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "SockMgr.h"
 
 static CSockMgr s_SockMgr;

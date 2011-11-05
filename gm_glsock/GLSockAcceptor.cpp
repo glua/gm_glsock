@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "GLSockAcceptor.h"
 #include "SockMgr.h"
 
@@ -66,6 +67,8 @@ bool CGLSockAcceptor::Bind( CEndpoint& Endpoint, Callback_t Callback )
 	{
 #if defined(_DEBUG)
 		Lua()->Msg("GLSock(Acceptor): %s\n",  boost::diagnostic_information(ex).c_str());
+#else
+		UNREFERENCED_PARAM(ex);
 #endif
 		bResult = false;
 	}
@@ -110,6 +113,8 @@ bool CGLSockAcceptor::Listen( int iBacklog, Callback_t Callback )
 	{
 #if defined(_DEBUG)
 		Lua()->Msg("GLSock(Acceptor): %s\n",  boost::diagnostic_information(ex).c_str());
+#else
+		UNREFERENCED_PARAM(ex);
 #endif
 		bResult = false;
 	}
@@ -132,6 +137,8 @@ bool CGLSockAcceptor::Accept( Callback_t Callback )
 	{
 #if defined(_DEBUG)
 		Lua()->Msg("GLSock(Acceptor): %s\n",  boost::diagnostic_information(ex).c_str());
+#else
+		UNREFERENCED_PARAM(ex);
 #endif
 		bResult = false;
 	}
@@ -159,6 +166,8 @@ bool CGLSockAcceptor::Close( void )
 	{
 #if defined(_DEBUG)
 		Lua()->Msg("GLSock(Acceptor): %s\n",  boost::diagnostic_information(ex).c_str());
+#else
+		UNREFERENCED_PARAM(ex);
 #endif
 		bResult = false;
 	}

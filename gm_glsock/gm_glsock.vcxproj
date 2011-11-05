@@ -108,6 +108,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BufferMgr.h" />
+    <ClInclude Include="Common.h" />
     <ClInclude Include="GLSock.h" />
     <ClInclude Include="GLSockAcceptor.h" />
     <ClInclude Include="GLSockBuffer.h" />
