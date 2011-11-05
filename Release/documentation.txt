@@ -148,7 +148,7 @@ GLSockBuffer.ReadString()
     Returns:
         count, string
         
-GLSockBuffer.WriteDouble(double)
+GLSockBuffer.WriteDouble(double [, swap_endian])
     Description:
         Writes a double onto the buffer.
     Returns:
@@ -156,19 +156,19 @@ GLSockBuffer.WriteDouble(double)
         
 GLSockBuffer.ReadDouble([swap_endian])
     Description:
-        Read a double from the buffer.
+        Read a double from the buffer. Optionally swaps the endianness
     Returns:
         count, number
         
-GLSockBuffer.WriteFloat(float)
+GLSockBuffer.WriteFloat(float [, swap_endian])
     Description:
-        Writes a double onto the buffer.
+        Writes a double onto the buffer. Optionally swaps the endianness
     Returns:
         count
         
-GLSockBuffer.ReadFloat()
+GLSockBuffer.ReadFloat([swap_endian])
     Description:
-        Reads a float from the buffer.
+        Reads a float from the buffer. Optionally swaps the endianness
     Returns:
         count, number
         
