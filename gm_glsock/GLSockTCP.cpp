@@ -241,7 +241,9 @@ void CGLSockTCP::OnConnect( Callback_t Callback, const boost::system::error_code
 {
 	if( !ec )
 	{
+#if defined(_DEBUG)
 		Lua()->Msg("GLSock(TCP): Connected to Host!\n");
+#endif
 
 		if( g_pSockMgr->ValidHandle(this) )
 			g_pSockMgr->StoreCallback( boost::bind(&CGLSockTCP::CallbackConnect, this, Callback, this, TranslateErrorMessage(ec), _1) );
@@ -250,7 +252,9 @@ void CGLSockTCP::OnConnect( Callback_t Callback, const boost::system::error_code
 	{
 		if( endpoint_iterator != boost::asio::ip::tcp::resolver::iterator() )
 		{
+#if defined(_DEBUG)
 			Lua()->Msg("GLSock(TCP): Connect attempt failed, trying next resolver.\n");
+#endif
 
 			boost::asio::ip::tcp::endpoint endpoint = *endpoint_iterator;
 

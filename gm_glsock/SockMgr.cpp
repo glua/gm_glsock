@@ -11,25 +11,6 @@ CSockMgr::CSockMgr( void )
 
 CSockMgr::~CSockMgr( void )
 {
-	std::vector<GLSock::CGLSock*>::iterator itr;
-
-	for( itr = m_vecSocks.begin(); itr != m_vecSocks.end(); itr++ )
-	{
-		(*itr)->Destroy();
-	}	
-
-	for(;;)
-	{
-		Mutex_t::scoped_lock lock(m_Mutex);
-		if( m_vecSocks.empty() )
-			break;
-
-		m_IOService.poll_one();
-	}
-
-	// dispatch stop()
-	m_IOService.poll_one();
-
 	delete m_pWorker;
 }
 
@@ -114,6 +95,7 @@ bool CSockMgr::CloseSockets()
 	}
 
 	m_IOService.dispatch(boost::bind(&boost::asio::io_service::stop, &m_IOService));
+	m_IOService.poll_one();
 
 	return true;
 }
