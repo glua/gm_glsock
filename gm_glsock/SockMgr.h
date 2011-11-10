@@ -13,6 +13,8 @@
 #include "GLSockTCP.h"
 #include "GLSockUDP.h"
 
+#include <boost/thread.hpp>
+
 class CSockMgr
 {
 	typedef boost::recursive_mutex Mutex_t;
@@ -51,7 +53,7 @@ public:
 		Mutex_t::scoped_lock lock(m_Mutex);
 		try
 		{
-			m_IOService.poll_one();
+			m_IOService.poll();
 			if( !m_Callbacks.empty() )
 			{
 				boost::function<void(lua_State*)> cb = m_Callbacks.top();

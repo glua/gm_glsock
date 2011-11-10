@@ -9,12 +9,12 @@ CBufferMgr::~CBufferMgr( void )
 	std::vector<GLSockBuffer::CGLSockBuffer*>::iterator itr;
 	for( itr = m_vecBuffer.begin(); itr != m_vecBuffer.end(); itr++ )
 		delete *itr;
-
-	m_vecBuffer.clear();
 }
 
 GLSockBuffer::CGLSockBuffer* CBufferMgr::Create( void )
 {
+	Mutex_t::scoped_lock lock(m_Mutex);
+
 	GLSockBuffer::CGLSockBuffer* pBuffer = new GLSockBuffer::CGLSockBuffer();
 	m_vecBuffer.push_back(pBuffer);
 
@@ -23,6 +23,8 @@ GLSockBuffer::CGLSockBuffer* CBufferMgr::Create( void )
 
 GLSockBuffer::CGLSockBuffer* CBufferMgr::Create( const char* pData, unsigned int cubData )
 {
+	Mutex_t::scoped_lock lock(m_Mutex);
+
 	GLSockBuffer::CGLSockBuffer* pBuffer = new GLSockBuffer::CGLSockBuffer(pData, cubData);
 	m_vecBuffer.push_back(pBuffer);
 
@@ -31,6 +33,8 @@ GLSockBuffer::CGLSockBuffer* CBufferMgr::Create( const char* pData, unsigned int
 
 bool CBufferMgr::Remove( GLSockBuffer::CGLSockBuffer* pBuffer )
 {
+	Mutex_t::scoped_lock lock(m_Mutex);
+
 	std::vector<GLSockBuffer::CGLSockBuffer*>::iterator itr;
 	for( itr = m_vecBuffer.begin(); itr != m_vecBuffer.end(); itr++ )
 	{
@@ -46,6 +50,8 @@ bool CBufferMgr::Remove( GLSockBuffer::CGLSockBuffer* pBuffer )
 
 bool CBufferMgr::ValidHandle( GLSockBuffer::CGLSockBuffer* pBuffer )
 {
+	Mutex_t::scoped_lock lock(m_Mutex);
+
 	std::vector<GLSockBuffer::CGLSockBuffer*>::iterator itr;
 	for( itr = m_vecBuffer.begin(); itr != m_vecBuffer.end(); itr++ )
 	{

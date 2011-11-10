@@ -149,16 +149,16 @@ bool CGLSockTCP::Read( unsigned int cubBuffer, Callback_t Callback )
 	return bResult;
 }
 
-bool CGLSockTCP::ReadUntil( const char* pszDelimiter, Callback_t Callback )
+bool CGLSockTCP::ReadUntil( std::string strDelimiter, Callback_t Callback )
 {
 	bool bResult = true;
 
 	try
 	{
-		boost::asio::streambuf* pStreamBuf = new boost::asio::streambuf;
+		char* pData = new char[1];
 
-		boost::asio::async_read_until(m_Sock, *pStreamBuf, pszDelimiter,
-			boost::bind(&CGLSockTCP::OnReadUntil, this, Callback, pStreamBuf, boost::asio::placeholders::bytes_transferred, boost::asio::placeholders::error));
+		m_Sock.async_receive(boost::asio::buffer(pData, 1),
+			boost::bind(&CGLSockTCP::OnReadUntil, this, Callback, strDelimiter, pData, boost::asio::placeholders::bytes_transferred, boost::asio::placeholders::error) );
 	}
 	catch (boost::exception& ex)
 	{
@@ -342,15 +342,8 @@ void CGLSockTCP::OnRead( Callback_t Callback, const char* pData, unsigned int cu
 	else
 	{
 		pBuffer = g_pBufferMgr->Create();
-
-		// Matt: WORKAROUND: If the previous call was ReadUntil it is possible that it may have read too much data.
-		if( !m_strBuffered.empty() )
-		{
-			pBuffer->Write(m_strBuffered.c_str(), m_strBuffered.size());
-			m_strBuffered.clear();
-		}
-
 		pBuffer->Write(pData, cubBytes);
+
 		pBuffer->Seek(0, SOCKBUFFER_SEEK_SET);
 	}
 
@@ -360,7 +353,7 @@ void CGLSockTCP::OnRead( Callback_t Callback, const char* pData, unsigned int cu
 		g_pSockMgr->StoreCallback( boost::bind(&CGLSockTCP::CallbackRead, this, Callback, this, pBuffer, TranslateErrorMessage(ec), _1) );
 }
 
-void CGLSockTCP::OnReadUntil( Callback_t Callback, boost::asio::streambuf* pStreamBuf, unsigned int cubBytes, const boost::system::error_code& ec )
+void CGLSockTCP::OnReadUntil( Callback_t Callback, std::string strDelimiter, const char* pData, unsigned int cubBytes, const boost::system::error_code& ec )
 {
 	GLSockBuffer::CGLSockBuffer* pBuffer = NULL;
 
@@ -369,40 +362,38 @@ void CGLSockTCP::OnReadUntil( Callback_t Callback, boost::asio::streambuf* pStre
 #if defined(_DEBUG)
 		Lua()->Msg("GLSock(TCP): %s\n", ec.message().c_str());
 #endif
+		delete pData;
+
+		if( g_pSockMgr->ValidHandle(this) )
+			g_pSockMgr->StoreCallback( boost::bind(&CGLSockTCP::CallbackRead, this, Callback, this, pBuffer, TranslateErrorMessage(ec), _1) );
 	}
 	else
 	{
-		unsigned int cAvailable = (unsigned int)pStreamBuf->in_avail();
-
-		boost::asio::streambuf::const_buffers_type bufs = pStreamBuf->data();
-		std::string strData(boost::asio::buffers_begin(bufs), boost::asio::buffers_begin(bufs) + cAvailable);
-
-		pBuffer = g_pBufferMgr->Create();
-
-		// WORKAROUND: Looks like async_read_until may read more than expected.
-		if( !m_strBuffered.empty() )
+		m_strBuffered.append(pData, cubBytes);
+		if( m_strBuffered.size() >= strDelimiter.size() )
 		{
-			pBuffer->Write(m_strBuffered.c_str(), m_strBuffered.size());
-		}
-		pBuffer->Write(strData.c_str(), strData.size());
-		pBuffer->Seek(0, SOCKBUFFER_SEEK_SET);
+			std::size_t nPos = m_strBuffered.size() - strDelimiter.size();
+			if( m_strBuffered.substr(nPos, strDelimiter.size()) == strDelimiter )
+			{
+				pBuffer = g_pBufferMgr->Create();
+				pBuffer->Write(m_strBuffered.c_str(), m_strBuffered.size());
+				pBuffer->Seek(0, SOCKBUFFER_SEEK_SET);
 
-		// WORKAROUND: If theres more data than expected, store it until next read.
-		int cOverheat = cAvailable - cubBytes;
-		if( cOverheat > 0 )
-		{
-#if defined(_DEBUG)
-			Lua()->Msg("Buffer Overheat: %u", cOverheat);
-#endif
-			m_strBuffered = strData.substr(cubBytes, cOverheat);
+				m_strBuffered.clear();
+				delete pData;
+
+				if( g_pSockMgr->ValidHandle(this) )
+					g_pSockMgr->StoreCallback( boost::bind(&CGLSockTCP::CallbackRead, this, Callback, this, pBuffer, TranslateErrorMessage(ec), _1) );
+
+				return;
+			}
 		}
 
+		// Keep reading.
+		m_Sock.async_receive(boost::asio::buffer((char*)pData, 1),
+			boost::bind(&CGLSockTCP::OnReadUntil, this, Callback, strDelimiter, pData, boost::asio::placeholders::bytes_transferred, boost::asio::placeholders::error) );
 	}
 
-	delete pStreamBuf;
-
-	if( g_pSockMgr->ValidHandle(this) )
-		g_pSockMgr->StoreCallback( boost::bind(&CGLSockTCP::CallbackRead, this, Callback, this, pBuffer, TranslateErrorMessage(ec), _1) );
 }
 
 void CGLSockTCP::OnDestroy( void )

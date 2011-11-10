@@ -117,7 +117,7 @@ public:
 	virtual bool Send(const char* cbData, unsigned int cubBuffer, Callback_t Callback);
 	virtual bool SendTo(const char* cbData, unsigned int cubBuffer, std::string strHost, std::string strPort, Callback_t Callback);
 	virtual bool Read(unsigned int cubBuffer, Callback_t Callback);
-	virtual bool ReadUntil(const char* pszDelimiter, Callback_t Callback);
+	virtual bool ReadUntil(std::string strDelimiter, Callback_t Callback);
 	virtual bool ReadFrom(unsigned int cubBuffer, Callback_t Callback);
 	virtual bool Resolve(const char* cszHostname, Callback_t Callback);
 	virtual bool Close(void);

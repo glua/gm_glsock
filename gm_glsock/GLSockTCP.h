@@ -27,7 +27,7 @@ public:
 	virtual bool Connect(std::string strHost, std::string strPort, Callback_t Callback);
 	virtual bool Send(const char* cbData, unsigned int cubBuffer, Callback_t Callback);
 	virtual bool Read(unsigned int cubBuffer, Callback_t Callback);
-	virtual bool ReadUntil(const char* pszDelimiter, Callback_t Callback);
+	virtual bool ReadUntil(std::string strDelimiter, Callback_t Callback);
 	virtual bool Resolve(const char* cszHostname, Callback_t Callback);
 	virtual bool Close(void);
 	virtual bool Cancel(void)
@@ -71,7 +71,7 @@ private:
 	void OnConnect(Callback_t Callback, const boost::system::error_code& ec, TCPResolver_t::iterator endpoint_iterator);
 	void OnSend(Callback_t Callback, unsigned int cubBytes, const boost::system::error_code& ec);
 	void OnRead(Callback_t Callback, const char* pData, unsigned int cubBytes, const boost::system::error_code& ec);
-	void OnReadUntil( Callback_t Callback, boost::asio::streambuf* pStreamBuf, unsigned int cubBytes, const boost::system::error_code& ec );
+	void OnReadUntil(Callback_t Callback, std::string strDelimiter, const char* pData, unsigned int cubBytes, const boost::system::error_code& ec);
 	void OnDestroy(void);
 
 	void CallbackBind(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L);

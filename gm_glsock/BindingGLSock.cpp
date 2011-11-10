@@ -397,14 +397,14 @@ static int ReadUntil(lua_State* L)
 
 	if( Lua()->GetType(2) != GLua::TYPE_STRING )
 		return 0;
-	const char* pszDelimiter = Lua()->GetString(2);
+	std::string strDelimiter(Lua()->GetString(2), Lua()->StringLength(2));
 
 	if( Lua()->GetType(3) != GLua::TYPE_FUNCTION )
 		return 0;
 	Callback_t nCallback = Lua()->GetReference(3);
 
 	pSock->Reference();
-	Lua()->Push( pSock->ReadUntil(pszDelimiter, nCallback) );
+	Lua()->Push( pSock->ReadUntil(strDelimiter, nCallback) );
         
 	return 1;
 }

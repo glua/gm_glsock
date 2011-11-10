@@ -91,11 +91,11 @@ bool CSockMgr::CloseSockets()
 		if( m_vecSocks.empty() )
 			break;
 
-		m_IOService.poll_one();
+		m_IOService.poll();
 	}
 
 	m_IOService.dispatch(boost::bind(&boost::asio::io_service::stop, &m_IOService));
-	m_IOService.poll_one();
+	m_IOService.poll();
 
 	return true;
 }

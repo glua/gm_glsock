@@ -6,13 +6,17 @@
 #endif
 
 #include "GLSockBuffer.h"
-
 #include <vector>
+
+#include <boost/thread.hpp>
 
 class CBufferMgr
 {
+	typedef boost::recursive_mutex Mutex_t;
+
 private:
 	std::vector<GLSockBuffer::CGLSockBuffer*> m_vecBuffer;
+	Mutex_t m_Mutex;
 
 public:
 	~CBufferMgr(void);

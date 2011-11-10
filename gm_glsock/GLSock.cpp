@@ -76,7 +76,7 @@ bool CGLSock::Read( unsigned int cubBuffer, Callback_t Callback )
 	return false;
 }
 
-bool CGLSock::ReadUntil( const char* pszDelimiter, Callback_t Callback )
+bool CGLSock::ReadUntil( std::string strDelimiter, Callback_t Callback )
 {
 	return false;
 }
