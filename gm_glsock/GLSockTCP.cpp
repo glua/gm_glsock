@@ -338,6 +338,14 @@ void CGLSockTCP::OnRead( Callback_t Callback, const char* pData, unsigned int cu
 	else
 	{
 		pBuffer = g_pBufferMgr->Create();
+
+		// Matt: WORKAROUND: If the previous call was ReadUntil it is possible that it may have read too much data.
+		if( !m_strBuffered.empty() )
+		{
+			pBuffer->Write(m_strBuffered.c_str(), m_strBuffered.size());
+			m_strBuffered.clear();
+		}
+
 		pBuffer->Write(pData, cubBytes);
 		pBuffer->Seek(0, SOCKBUFFER_SEEK_SET);
 	}
@@ -360,12 +368,31 @@ void CGLSockTCP::OnReadUntil( Callback_t Callback, boost::asio::streambuf* pStre
 	}
 	else
 	{
+		unsigned int cAvailable = (unsigned int)pStreamBuf->in_avail();
+
 		boost::asio::streambuf::const_buffers_type bufs = pStreamBuf->data();
-		std::string strData(boost::asio::buffers_begin(bufs), boost::asio::buffers_begin(bufs) + cubBytes);
+		std::string strData(boost::asio::buffers_begin(bufs), boost::asio::buffers_begin(bufs) + cAvailable);
 
 		pBuffer = g_pBufferMgr->Create();
+
+		// WORKAROUND: Looks like async_read_until may read more than expected.
+		if( !m_strBuffered.empty() )
+		{
+			pBuffer->Write(m_strBuffered.c_str(), m_strBuffered.size());
+		}
 		pBuffer->Write(strData.c_str(), strData.size());
 		pBuffer->Seek(0, SOCKBUFFER_SEEK_SET);
+
+		// WORKAROUND: If theres more data than expected, store it until next read.
+		int cOverheat = cAvailable - cubBytes;
+		if( cOverheat > 0 )
+		{
+#if defined(_DEBUG)
+			Lua()->Msg("Buffer Overheat: %u", cOverheat);
+#endif
+			m_strBuffered = strData.substr(cubBytes, cOverheat);
+		}
+
 	}
 
 	delete pStreamBuf;

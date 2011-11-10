@@ -18,6 +18,7 @@ private:
 	TCPSock_t m_Sock;
 	TCPResolver_t m_Resolver;
 	lua_State* L;
+	std::string m_strBuffered;
 
 public:
 	CGLSockTCP(IOService_t& IOService, lua_State* pLua, bool bOpen = true);
@@ -70,7 +71,7 @@ private:
 	void OnConnect(Callback_t Callback, const boost::system::error_code& ec, TCPResolver_t::iterator endpoint_iterator);
 	void OnSend(Callback_t Callback, unsigned int cubBytes, const boost::system::error_code& ec);
 	void OnRead(Callback_t Callback, const char* pData, unsigned int cubBytes, const boost::system::error_code& ec);
-	void OnReadUntil(Callback_t Callback, boost::asio::streambuf* pStreamBuf, unsigned int cubBytes, const boost::system::error_code& ec);
+	void OnReadUntil( Callback_t Callback, boost::asio::streambuf* pStreamBuf, unsigned int cubBytes, const boost::system::error_code& ec );
 	void OnDestroy(void);
 
 	void CallbackBind(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L);
