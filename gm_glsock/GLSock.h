@@ -124,8 +124,8 @@ public:
 	virtual bool Cancel(void);
 	virtual int Type(void);
 
-	virtual void Reference(void) = 0;
-	virtual void Unreference(void) = 0;
+	virtual int Reference(void) = 0;
+	virtual int Unreference(void) = 0;
 	virtual void Destroy(void) = 0;
 
 	virtual int TranslateErrorMessage(const boost::system::error_code& ec);

@@ -202,12 +202,13 @@ bool CGLSockTCP::Close( void )
 	return bResult;
 }
 
-void CGLSockTCP::Reference( void )
+int CGLSockTCP::Reference( void )
 {
 	m_nReferences++;
+	return m_nReferences;
 }
 
-void CGLSockTCP::Unreference( void )
+int CGLSockTCP::Unreference( void )
 {
 	m_nReferences--;
 	if( m_nReferences <= 0 )
@@ -215,6 +216,7 @@ void CGLSockTCP::Unreference( void )
 		//g_pSockMgr->RemoveSock(this);
 		Destroy();
 	}
+	return m_nReferences;
 }
 
 void CGLSockTCP::OnResolve( Callback_t Callback, const boost::system::error_code& err, TCPResolver_t::iterator endpoint_iterator )

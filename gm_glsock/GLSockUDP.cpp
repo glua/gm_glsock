@@ -174,12 +174,13 @@ bool CGLSockUDP::Close( void )
 	return bResult;
 }
 
-void CGLSockUDP::Reference( void )
+int CGLSockUDP::Reference( void )
 {
 	m_nReferences++;
+	return m_nReferences;
 }
 
-void CGLSockUDP::Unreference( void )
+int CGLSockUDP::Unreference( void )
 {
 	m_nReferences--;
 	if( m_nReferences <= 0 )
@@ -187,6 +188,7 @@ void CGLSockUDP::Unreference( void )
 		//g_pSockMgr->RemoveSock(this);
 		Destroy();
 	}
+	return m_nReferences;
 }
 
 void CGLSockUDP::CallbackSend( Callback_t Callback, CGLSock* pHandle, unsigned int cubBytes, int iErrorMsg, lua_State* L )

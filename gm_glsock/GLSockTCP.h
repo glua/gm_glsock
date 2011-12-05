@@ -44,8 +44,8 @@ public:
 	{
 		return m_Sock;
 	}
-	virtual void Reference(void);
-	virtual void Unreference(void);
+	virtual int Reference(void);
+	virtual int Unreference(void);
 	virtual void Destroy(void)
 	{
 		boost::system::error_code ec;

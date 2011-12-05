@@ -175,12 +175,13 @@ bool CGLSockAcceptor::Close( void )
 	return bResult;
 }
 
-void CGLSockAcceptor::Reference( void )
+int CGLSockAcceptor::Reference( void )
 {
 	m_nReferences++;
+	return m_nReferences;
 }
 
-void CGLSockAcceptor::Unreference( void )
+int CGLSockAcceptor::Unreference( void )
 {
 	m_nReferences--;
 	if( m_nReferences <= 0 )
@@ -188,6 +189,7 @@ void CGLSockAcceptor::Unreference( void )
 		//g_pSockMgr->RemoveSock(this);
 		Destroy();
 	}
+	return m_nReferences;
 }
 
 void CGLSockAcceptor::CallbackAccept(Callback_t Callback, CGLSock* pHandle, CGLSock* pSock, int iErrorMsg, lua_State* L)

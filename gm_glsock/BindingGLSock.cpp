@@ -77,10 +77,168 @@ static int __delete(lua_State* L)
 		return 0;
 	}
 
-	pSock->Unreference();
+	if( pSock->Unreference() <= 0 )
+	{
+		ILuaObject* _R = Lua()->GetGlobal("_R");
+		if( !_R )
+			return 0;
+
+		ILuaObject* pSockTable = _R->GetMember("GLSockTable");
+		if( pSockTable )
+		{
+			float flSock = (float)((unsigned int)pSock);
+
+			// _R.GLSockTable[sock] = nil
+			pSockTable->SetMember(flSock, (ILuaObject*)NULL);
+
+			/*
+			ILuaObject* pSockIndex = pSockTable->GetMember(flSock);
+			if( pSockIndex )
+				pSockIndex->UnReference();
+			*/
+		}
+	}
 
 	return 0;
 }
+
+static int __index(lua_State* L)
+{
+	Lua()->CheckType(1, GLSOCK_TYPE);
+
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
+	if( !g_pSockMgr->ValidHandle(pSock) )
+	{
+		// Lua()->LuaError("Invalid socket handle", 1);
+		return 0;
+	}
+
+	ILuaObject *_R = Lua()->GetGlobal("_R");
+	if( !_R )
+		return 0;
+
+	ILuaObject *pSockTable = _R->GetMember("GLSockTable");
+	if( !pSockTable )
+	{
+		return 0;
+	}
+
+	float flSock = (float)((unsigned int)pSock);
+
+	ILuaObject* pSockIndex = pSockTable->GetMember(flSock);
+	if( !pSockIndex )
+	{
+#if defined(_DEBUG)
+		Lua()->Msg("Socket handle not set in table.");
+#endif
+		return 0;
+	}
+
+	// Sigh, stop annoying me
+	#if defined(GetObject)
+		#undef GetObject
+	#endif
+
+	ILuaObject *pKey = Lua()->GetObject(2);
+	Lua()->Push(pSockIndex->GetMember(pKey));
+
+	return 1;
+}
+
+static int __newindex(lua_State* L)
+{
+	Lua()->CheckType(1, GLSOCK_TYPE);
+
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
+	if( !g_pSockMgr->ValidHandle(pSock) )
+	{
+		// Lua()->LuaError("Invalid socket handle", 1);
+		return 0;
+	}
+
+	ILuaObject* _R = Lua()->GetGlobal("_R");
+	if( !_R )
+		return 0;
+
+	ILuaObject* pSockTable = _R->GetMember("GLSockTable");
+	if( !pSockTable )
+	{
+		ILuaObject* pTable = Lua()->GetNewTable();
+		_R->SetMember("GLSockTable", pTable);
+		pSockTable = pTable;
+	}
+
+	float flSock = (float)((unsigned int)pSock);
+
+	ILuaObject* pSockIndex = pSockTable->GetMember(flSock);
+	if( !pSockIndex )
+	{
+		pSockIndex = Lua()->GetNewTable();
+		pSockTable->SetMember(flSock, pSockIndex);
+	}
+
+	// Sigh, stop annoying me
+	#if defined(GetObject)
+		#undef GetObject
+	#endif
+
+	pSockIndex->SetMember(Lua()->GetObject(2), Lua()->GetObject(3));
+	pSockIndex->UnReference();
+
+	return 0;
+}
+
+static int __tostring(lua_State* L)
+{
+	Lua()->CheckType(1, GLSOCK_TYPE);
+
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
+	if( !g_pSockMgr->ValidHandle(pSock) )
+	{
+		//Lua()->LuaError("Invalid socket handle", 1);
+		return 0;
+	}
+
+	std::stringstream ss;
+	switch(pSock->Type())
+	{
+	case eSockTypeUDP:
+		{
+			ss << "GLSockUDP(" << (void*)pSock << ")";
+		}
+		break;
+	case eSockTypeTCP:
+		{
+			ss << "GLSockTCP(" << (void*)pSock << ")";
+		}
+		break;
+	case eSockTypeAcceptor:
+		{
+			ss << "GLSockAcceptor(" << (void*)pSock << ")";
+		}
+		break;
+	default:
+		{
+			ss << "GLSock(" << (void*)pSock << ")";
+		}
+		break;
+	}
+
+	std::string strType = ss.str();
+	Lua()->Push(strType.c_str());
+
+	return 1;
+}
+
+static int __eq(lua_State* L)
+{
+	Lua()->CheckType(1, GLSOCK_TYPE);
+	Lua()->CheckType(2, GLSOCK_TYPE);
+
+	Lua()->Push(Lua()->GetUserData(1) == Lua()->GetUserData(2));
+	return 1;
+}
+
 
 static int Bind(lua_State* L)
 {
@@ -97,7 +255,7 @@ static int Bind(lua_State* L)
 	Lua()->CheckType(3, GLua::TYPE_NUMBER);
 	Lua()->CheckType(4, GLua::TYPE_FUNCTION);
 
-        boost::system::error_code ex;
+    boost::system::error_code ex;
         
 	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
 	if( !g_pSockMgr->ValidHandle(pSock) )
@@ -127,14 +285,14 @@ static int Bind(lua_State* L)
 		pEndpoint = new CEndpoint( endpoint.address().to_v4().to_ulong(), usPort );
 	}
 
-        if( ex )
-        {
-            if( pEndpoint )
-                delete pEndpoint;
-            return 0;
-        }
+	if( ex )
+	{
+		if( pEndpoint )
+			delete pEndpoint;
+		return 0;
+	}
         
-        pSock->Reference();
+	pSock->Reference();
 	Lua()->Push( pSock->Bind(*pEndpoint, nCallback) );
 
 	delete pEndpoint;
@@ -541,6 +699,29 @@ static int Destroy(lua_State* L)
 	return 0;
 }
 
+static int Type(lua_State* L)
+{
+	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
+#if defined(_DEBUG)
+	Lua()->Msg("%s()\n", __FUNCTION__);
+#endif
+
+	Lua()->CheckType(1, GLSOCK_TYPE);
+
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
+	if( !g_pSockMgr->ValidHandle(pSock) )
+	{
+		Lua()->LuaError("Invalid socket handle", 1);
+		return 0;
+	}
+
+	Lua()->Push( (float)pSock->Type() );
+	return 1;
+}
+
 static int Poll(lua_State* L)
 {
 	if( !L )
@@ -558,6 +739,7 @@ void Startup( lua_State* L )
     
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 	{
+		/*
 		CAutoUnRef Index = Lua()->GetNewTable();
 
 		Index->SetMember("Bind", GLSock::Bind);
@@ -575,8 +757,29 @@ void Startup( lua_State* L )
 		Index->SetMember("Destroy", GLSock::Destroy);
 
 		MetaTable->SetMember("__index", Index);
+		*/
+
+		MetaTable->SetMember("Bind", GLSock::Bind);
+		MetaTable->SetMember("Listen", GLSock::Listen);
+		MetaTable->SetMember("Accept", GLSock::Accept);
+		MetaTable->SetMember("Connect", GLSock::Connect);
+		MetaTable->SetMember("Send", GLSock::Send);
+		MetaTable->SetMember("SendTo", GLSock::SendTo);
+		MetaTable->SetMember("Read", GLSock::Read);
+		MetaTable->SetMember("ReadUntil", GLSock::ReadUntil);
+		MetaTable->SetMember("ReadFrom", GLSock::ReadFrom);
+		MetaTable->SetMember("Resolve", GLSock::Resolve);
+		MetaTable->SetMember("Close", GLSock::Close);
+		MetaTable->SetMember("Cancel", GLSock::Cancel);
+		MetaTable->SetMember("Destroy", GLSock::Destroy);
+		MetaTable->SetMember("Type", GLSock::Type);
+
+		MetaTable->SetMember("__gc", GLSock::__delete);
+		MetaTable->SetMember("__eq", GLSock::__eq);
+		MetaTable->SetMember("__tostring", GLSock::__tostring);
+		MetaTable->SetMember("__index", GLSock::__index);
+		MetaTable->SetMember("__newindex", GLSock::__newindex);
 	}
-	MetaTable->SetMember("__gc", GLSock::__delete);
 
 	Lua()->SetGlobal("GLSock", GLSock::__new);
 
