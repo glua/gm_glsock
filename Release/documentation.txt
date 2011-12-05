@@ -113,6 +113,12 @@ GLSock.Destroy()
     Returns:
         nil
         
+GLSock.Type()
+    Description:
+        Returns the type of the socket, can be one of the GLSOCK_TYPE_* values
+    Returns:
+        GLSOCK_TYPE_*
+        
 -------------------------------------------------------------------------------------
 
 GLSockBuffer()

@@ -1,4 +1,4 @@
-GLSock v1.0.1
+GLSock v1.2.0
 Credits: Morten, Python1320, CapsAdmin
 
 Also big thanks to Morten for a few fixes and the first initial Linux build.
@@ -9,7 +9,7 @@ Known Bugs
 ---------------------------------
 Windows:
     Unloading the module may cause a delay due to the io_service not being shutdown properly, blame Boost.
-    Actually, disable IOCP when building boost, that fixes it.
+    Actually, disable IOCP when building boost, that fixes it. Default build comes with IOCP disabled.
 
 Linux:
     Boost is now statically linked, theres still some problem with libstd++.6.so, you have to wipe it from
