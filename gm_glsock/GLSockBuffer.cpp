@@ -139,12 +139,13 @@ bool CGLSockBuffer::Clear( unsigned int nPos, unsigned int cSize )
 	return true;
 }
 
-void CGLSockBuffer::Reference()
+int CGLSockBuffer::Reference()
 {
 	m_nReferences++;
+	return m_nReferences;
 }
 
-void CGLSockBuffer::Unreference()
+int CGLSockBuffer::Unreference()
 {
 	m_nReferences--;
 	if( m_nReferences <= 0 )
@@ -152,6 +153,7 @@ void CGLSockBuffer::Unreference()
 		g_pBufferMgr->Remove(this);
 		delete this;
 	}
+	return m_nReferences;
 }
 
 

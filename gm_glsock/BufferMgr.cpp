@@ -16,6 +16,7 @@ GLSockBuffer::CGLSockBuffer* CBufferMgr::Create( void )
 	Mutex_t::scoped_lock lock(m_Mutex);
 
 	GLSockBuffer::CGLSockBuffer* pBuffer = new GLSockBuffer::CGLSockBuffer();
+	pBuffer->m_nTableRef = 0;
 	m_vecBuffer.push_back(pBuffer);
 
 	return pBuffer;
@@ -26,6 +27,7 @@ GLSockBuffer::CGLSockBuffer* CBufferMgr::Create( const char* pData, unsigned int
 	Mutex_t::scoped_lock lock(m_Mutex);
 
 	GLSockBuffer::CGLSockBuffer* pBuffer = new GLSockBuffer::CGLSockBuffer(pData, cubData);
+	pBuffer->m_nTableRef = 0;
 	m_vecBuffer.push_back(pBuffer);
 
 	return pBuffer;

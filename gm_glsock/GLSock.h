@@ -110,6 +110,8 @@ public:
 class CGLSock
 {
 public:
+	int m_nTableRef;
+
 	virtual bool Bind(CEndpoint& Endpoint, Callback_t Callback);
 	virtual bool Listen(int iBacklog, Callback_t Callback);
 	virtual bool Accept(Callback_t Callback);

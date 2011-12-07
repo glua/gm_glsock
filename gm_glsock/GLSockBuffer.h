@@ -28,6 +28,8 @@ private:
 	int m_nReferences;
 
 public:
+	int m_nTableRef;
+
 	CGLSockBuffer(const char* pData, unsigned int cubBuffer);
 	CGLSockBuffer(void);
 	~CGLSockBuffer(void);
@@ -70,8 +72,8 @@ public:
 
 	bool Clear(unsigned int nPos, unsigned int cSize);
 
-	void Reference();
-	void Unreference();
+	int Reference();
+	int Unreference();
 };
 
 } // GLSockBuffer

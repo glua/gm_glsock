@@ -18,7 +18,8 @@ GLSock::CGLSock* CSockMgr::CreateAcceptorSock(lua_State* L)
 {
 	Mutex_t::scoped_lock lock(m_Mutex);
 
-	GLSock::CGLSockAcceptor* pSock = new GLSock::CGLSockAcceptor(m_IOService, L);
+	GLSock::CGLSock* pSock = new GLSock::CGLSockAcceptor(m_IOService, L);
+	pSock->m_nTableRef = 0;
 	m_vecSocks.push_back(pSock);
 
 	return pSock;
@@ -29,6 +30,7 @@ GLSock::CGLSock* CSockMgr::CreateTCPSock( lua_State* L, bool bOpen )
 	Mutex_t::scoped_lock lock(m_Mutex);
 
 	GLSock::CGLSockTCP* pSock = new GLSock::CGLSockTCP(m_IOService, L, bOpen);
+	pSock->m_nTableRef = 0;
 	m_vecSocks.push_back(pSock);
 
 	return pSock;
@@ -39,6 +41,7 @@ GLSock::CGLSock* CSockMgr::CreateUDPSock( lua_State* L )
 	Mutex_t::scoped_lock lock(m_Mutex);
 
 	GLSock::CGLSockUDP* pSock = new GLSock::CGLSockUDP(m_IOService, L);
+	pSock->m_nTableRef = 0;
 	m_vecSocks.push_back(pSock);
 
 	return pSock;

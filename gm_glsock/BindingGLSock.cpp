@@ -77,26 +77,10 @@ static int __delete(lua_State* L)
 		return 0;
 	}
 
+	int nTableRef = pSock->m_nTableRef;
 	if( pSock->Unreference() <= 0 )
 	{
-		ILuaObject* _R = Lua()->GetGlobal("_R");
-		if( !_R )
-			return 0;
-
-		ILuaObject* pSockTable = _R->GetMember("GLSockTable");
-		if( pSockTable )
-		{
-			float flSock = (float)((unsigned int)pSock);
-
-			// _R.GLSockTable[sock] = nil
-			pSockTable->SetMember(flSock, (ILuaObject*)NULL);
-
-			/*
-			ILuaObject* pSockIndex = pSockTable->GetMember(flSock);
-			if( pSockIndex )
-				pSockIndex->UnReference();
-			*/
-		}
+		Lua()->FreeReference(pSock->m_nTableRef);
 	}
 
 	return 0;
@@ -113,35 +97,34 @@ static int __index(lua_State* L)
 		return 0;
 	}
 
-	ILuaObject *_R = Lua()->GetGlobal("_R");
-	if( !_R )
-		return 0;
-
-	ILuaObject *pSockTable = _R->GetMember("GLSockTable");
-	if( !pSockTable )
-	{
-		return 0;
-	}
-
-	float flSock = (float)((unsigned int)pSock);
-
-	ILuaObject* pSockIndex = pSockTable->GetMember(flSock);
-	if( !pSockIndex )
-	{
-#if defined(_DEBUG)
-		Lua()->Msg("Socket handle not set in table.");
+#if defined(GetObject)
+	#undef GetObject
 #endif
-		return 0;
+
+	ILuaObject* pMember = NULL;
+
+	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
+	{
+		ILuaObject* pFunctions = MetaTable->GetMember("__functions");
+		pMember = pFunctions->GetMember(Lua()->GetObject(2));
+		if( pMember )
+		{
+			Lua()->Push(pMember);
+			return 1;
+		}
 	}
 
-	// Sigh, stop annoying me
-	#if defined(GetObject)
-		#undef GetObject
-	#endif
+	if( pSock->m_nTableRef == 0 )
+		return 0;
 
-	ILuaObject *pKey = Lua()->GetObject(2);
-	Lua()->Push(pSockIndex->GetMember(pKey));
+	Lua()->PushReference(pSock->m_nTableRef);
+	CAutoUnRef Table(Lua()->GetObject(-1));
+	{
+		Lua()->Pop();
+		pMember = Table->GetMember(Lua()->GetObject(2));
+	}
 
+	Lua()->Push(pMember);
 	return 1;
 }
 
@@ -149,41 +132,29 @@ static int __newindex(lua_State* L)
 {
 	Lua()->CheckType(1, GLSOCK_TYPE);
 
-	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
-	if( !g_pSockMgr->ValidHandle(pSock) )
-	{
-		// Lua()->LuaError("Invalid socket handle", 1);
-		return 0;
-	}
-
-	ILuaObject* _R = Lua()->GetGlobal("_R");
-	if( !_R )
-		return 0;
-
-	ILuaObject* pSockTable = _R->GetMember("GLSockTable");
-	if( !pSockTable )
-	{
-		ILuaObject* pTable = Lua()->GetNewTable();
-		_R->SetMember("GLSockTable", pTable);
-		pSockTable = pTable;
-	}
-
-	float flSock = (float)((unsigned int)pSock);
-
-	ILuaObject* pSockIndex = pSockTable->GetMember(flSock);
-	if( !pSockIndex )
-	{
-		pSockIndex = Lua()->GetNewTable();
-		pSockTable->SetMember(flSock, pSockIndex);
-	}
-
-	// Sigh, stop annoying me
 	#if defined(GetObject)
 		#undef GetObject
 	#endif
 
-	pSockIndex->SetMember(Lua()->GetObject(2), Lua()->GetObject(3));
-	pSockIndex->UnReference();
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
+	if( !g_pSockMgr->ValidHandle(pSock) )
+	{
+		//Lua()->LuaError("Invalid socket handle", 1);
+		return 0;
+	}
+
+	if( pSock->m_nTableRef == 0 )
+	{
+		Lua()->NewTable();
+		pSock->m_nTableRef = Lua()->GetReference(-1, true);
+	}
+
+	Lua()->PushReference(pSock->m_nTableRef);
+	CAutoUnRef Table(Lua()->GetObject(-1));
+	{
+		Lua()->Pop();
+		Table->SetMember(Lua()->GetObject(2), Lua()->GetObject(3));
+	}
 
 	return 0;
 }
@@ -204,22 +175,22 @@ static int __tostring(lua_State* L)
 	{
 	case eSockTypeUDP:
 		{
-			ss << "GLSockUDP(" << (void*)pSock << ")";
+			ss << "GLSockUDP: " << (void*)pSock;
 		}
 		break;
 	case eSockTypeTCP:
 		{
-			ss << "GLSockTCP(" << (void*)pSock << ")";
+			ss << "GLSockTCP: " << (void*)pSock;
 		}
 		break;
 	case eSockTypeAcceptor:
 		{
-			ss << "GLSockAcceptor(" << (void*)pSock << ")";
+			ss << "GLSockAcceptor: " << (void*)pSock;
 		}
 		break;
 	default:
 		{
-			ss << "GLSock(" << (void*)pSock << ")";
+			ss << "GLSock: " << (void*)pSock;
 		}
 		break;
 	}
@@ -238,7 +209,6 @@ static int __eq(lua_State* L)
 	Lua()->Push(Lua()->GetUserData(1) == Lua()->GetUserData(2));
 	return 1;
 }
-
 
 static int Bind(lua_State* L)
 {
@@ -739,7 +709,6 @@ void Startup( lua_State* L )
     
 	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
 	{
-		/*
 		CAutoUnRef Index = Lua()->GetNewTable();
 
 		Index->SetMember("Bind", GLSock::Bind);
@@ -756,9 +725,7 @@ void Startup( lua_State* L )
 		Index->SetMember("Cancel", GLSock::Cancel);
 		Index->SetMember("Destroy", GLSock::Destroy);
 
-		MetaTable->SetMember("__index", Index);
-		*/
-
+		/*
 		MetaTable->SetMember("Bind", GLSock::Bind);
 		MetaTable->SetMember("Listen", GLSock::Listen);
 		MetaTable->SetMember("Accept", GLSock::Accept);
@@ -773,12 +740,14 @@ void Startup( lua_State* L )
 		MetaTable->SetMember("Cancel", GLSock::Cancel);
 		MetaTable->SetMember("Destroy", GLSock::Destroy);
 		MetaTable->SetMember("Type", GLSock::Type);
+		*/
 
 		MetaTable->SetMember("__gc", GLSock::__delete);
 		MetaTable->SetMember("__eq", GLSock::__eq);
 		MetaTable->SetMember("__tostring", GLSock::__tostring);
 		MetaTable->SetMember("__index", GLSock::__index);
 		MetaTable->SetMember("__newindex", GLSock::__newindex);
+		MetaTable->SetMember("__functions", Index);
 	}
 
 	Lua()->SetGlobal("GLSock", GLSock::__new);

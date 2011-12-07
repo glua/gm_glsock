@@ -41,9 +41,114 @@ static int __delete(lua_State* L)
 	if( !g_pBufferMgr->ValidHandle(pBuffer) )
 		return 0;
 
-	pBuffer->Unreference();
+	if( pBuffer->Unreference() <= 0 )
+	{
+		Lua()->FreeReference(pBuffer->m_nTableRef);
+	}
 
 	return 0;
+}
+
+static int __index(lua_State* L)
+{
+	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
+
+	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
+	if( !g_pBufferMgr->ValidHandle(pBuffer) )
+	{
+		Lua()->LuaError("Invalid buffer handle", 1);
+		return 0;
+	}
+
+#if defined(GetObject)
+#undef GetObject
+#endif
+
+	ILuaObject* pMember = NULL;
+
+	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCKBUFFER_NAME, GLSOCKBUFFER_TYPE);
+	{
+		ILuaObject* pFunctions = MetaTable->GetMember("__functions");
+		pMember = pFunctions->GetMember(Lua()->GetObject(2));
+		if( pMember )
+		{
+			Lua()->Push(pMember);
+			return 1;
+		}
+	}
+
+	if( pBuffer->m_nTableRef == 0 )
+		return 0;
+
+	Lua()->PushReference(pBuffer->m_nTableRef);
+	CAutoUnRef Table(Lua()->GetObject(-1));
+	{
+		Lua()->Pop();
+		pMember = Table->GetMember(Lua()->GetObject(2));
+	}
+
+	Lua()->Push(pMember);
+	return 1;
+}
+
+static int __newindex(lua_State* L)
+{
+	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
+
+#if defined(GetObject)
+#undef GetObject
+#endif
+
+	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
+	if( !g_pBufferMgr->ValidHandle(pBuffer) )
+	{
+		Lua()->LuaError("Invalid buffer handle", 1);
+		return 0;
+	}
+
+	if( pBuffer->m_nTableRef == 0 )
+	{
+		Lua()->NewTable();
+		pBuffer->m_nTableRef = Lua()->GetReference(-1, true);
+	}
+
+	Lua()->PushReference(pBuffer->m_nTableRef);
+	CAutoUnRef Table(Lua()->GetObject(-1));
+	{
+		Lua()->Pop();
+		Table->SetMember(Lua()->GetObject(2), Lua()->GetObject(3));
+	}
+
+	return 0;
+}
+
+static int __tostring(lua_State* L)
+{
+	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
+
+	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
+	if( !g_pBufferMgr->ValidHandle(pBuffer) )
+	{
+		Lua()->LuaError("Invalid buffer handle", 1);
+		return 0;
+	}
+
+	std::stringstream ss;
+	ss << "GLSockBuffer: " << (void*)pBuffer;
+
+	std::string strType = ss.str();
+	Lua()->Push(strType.c_str());
+
+	return 1;
+}
+
+static int __eq(lua_State* L)
+{
+	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
+	Lua()->CheckType(2, GLSOCKBUFFER_TYPE);
+
+	Lua()->Push(Lua()->GetUserData(1) == Lua()->GetUserData(2));
+	return 1;
 }
 
 static int Write(lua_State* L)
@@ -795,9 +900,13 @@ void Startup( lua_State* L )
 		Index->SetMember("Empty", GLSockBuffer::Empty);
 		Index->SetMember("Clear", GLSockBuffer::Clear);
 
-		MetaTable->SetMember("__index", Index);
+		MetaTable->SetMember("__gc", GLSockBuffer::__delete);
+		MetaTable->SetMember("__eq", GLSockBuffer::__eq);
+		MetaTable->SetMember("__tostring", GLSockBuffer::__tostring);
+		MetaTable->SetMember("__index", GLSockBuffer::__index);
+		MetaTable->SetMember("__newindex", GLSockBuffer::__newindex);
+		MetaTable->SetMember("__functions", Index);
 	}
-	MetaTable->SetMember("__gc", GLSockBuffer::__delete);
 
 	Lua()->SetGlobal("GLSockBuffer", GLSockBuffer::__new);
 
