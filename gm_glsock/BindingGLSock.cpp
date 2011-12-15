@@ -692,6 +692,54 @@ static int Type(lua_State* L)
 	return 1;
 }
 
+static int RemoteAddress(lua_State* L)
+{
+	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
+#if defined(_DEBUG)
+	Lua()->Msg("%s()\n", __FUNCTION__);
+#endif
+
+	Lua()->CheckType(1, GLSOCK_TYPE);
+
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
+	if( !g_pSockMgr->ValidHandle(pSock) )
+	{
+		Lua()->LuaError("Invalid socket handle", 1);
+		return 0;
+	}
+
+	std::string strAddress = pSock->RemoteAddress();
+	Lua()->Push( strAddress.c_str() );
+
+	return 1;
+}
+
+static int RemotePort(lua_State* L)
+{
+	// SCOPED_LOCK(g_pSockMgr->Mutex());
+	if( !L )
+		return 0;
+
+#if defined(_DEBUG)
+	Lua()->Msg("%s()\n", __FUNCTION__);
+#endif
+
+	Lua()->CheckType(1, GLSOCK_TYPE);
+
+	CGLSock* pSock = reinterpret_cast<CGLSock*>( Lua()->GetUserData(1) );
+	if( !g_pSockMgr->ValidHandle(pSock) )
+	{
+		Lua()->LuaError("Invalid socket handle", 1);
+		return 0;
+	}
+
+	Lua()->Push( (float)pSock->RemotePort() );
+	return 1;
+}
+
 static int Poll(lua_State* L)
 {
 	if( !L )
@@ -724,6 +772,8 @@ void Startup( lua_State* L )
 		Index->SetMember("Close", GLSock::Close);
 		Index->SetMember("Cancel", GLSock::Cancel);
 		Index->SetMember("Destroy", GLSock::Destroy);
+		Index->SetMember("RemoteAddress", GLSock::RemoteAddress);
+		Index->SetMember("RemotePort", GLSock::RemotePort);
 
 		/*
 		MetaTable->SetMember("Bind", GLSock::Bind);

@@ -65,6 +65,28 @@ public:
 #endif
 		}
 	}
+	virtual std::string RemoteAddress(void)
+	{
+		try
+		{
+			return m_Sock.remote_endpoint().address().to_string();
+		}
+		catch (boost::exception&)
+		{
+		}
+		return "0.0.0.0";
+	}
+	virtual unsigned short RemotePort(void)
+	{
+		try
+		{
+			return m_Sock.remote_endpoint().port();
+		}
+		catch (boost::exception&)
+		{
+		}
+		return 0;
+	}
 
 private:
 	void OnResolve(Callback_t Callback, const boost::system::error_code& ec, TCPResolver_t::iterator endpoint_iterator);

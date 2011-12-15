@@ -119,6 +119,18 @@ GLSock.Type()
     Returns:
         GLSOCK_TYPE_*
         
+GLSock.RemoteAddress()
+    Description:
+        Returns the IPv4 address of the remote endpoint when available.
+    Returns:
+        string
+        
+GLSock.RemotePort()
+    Description:
+        Returns the port of the remote endpoint when available.
+    Returns:
+        number    
+        
 -------------------------------------------------------------------------------------
 
 GLSockBuffer()

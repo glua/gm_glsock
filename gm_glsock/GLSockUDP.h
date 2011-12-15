@@ -62,6 +62,28 @@ public:
 #endif
 		}
 	}
+	virtual std::string RemoteAddress(void)
+	{
+		try
+		{
+			return m_Sock.remote_endpoint().address().to_string();
+		}
+		catch (boost::exception&)
+		{
+		}
+		return "0.0.0.0";
+	}
+	virtual unsigned short RemotePort(void)
+	{
+		try
+		{
+			return m_Sock.remote_endpoint().port();
+		}
+		catch (boost::exception&)
+		{
+		}
+		return 0;
+	}
 
 private:
 	void OnSend(Callback_t Callback, unsigned int cubBytes, const boost::system::error_code& ec, UDPResolver_t::iterator iterator, const char* pBuffer, unsigned int cubBuffer);

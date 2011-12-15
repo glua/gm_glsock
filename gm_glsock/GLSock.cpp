@@ -179,5 +179,15 @@ int CGLSock::TranslateErrorMessage( const boost::system::error_code& ec )
 	return ec.value();
 }
 
+std::string CGLSock::RemoteAddress( void )
+{
+	return "0.0.0.0";
+}
+
+unsigned short CGLSock::RemotePort( void )
+{
+	return 0;
+}
+
 
 } // GLSock

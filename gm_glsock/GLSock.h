@@ -125,6 +125,8 @@ public:
 	virtual bool Close(void);
 	virtual bool Cancel(void);
 	virtual int Type(void);
+	virtual std::string RemoteAddress(void);
+	virtual unsigned short RemotePort(void);
 
 	virtual int Reference(void) = 0;
 	virtual int Unreference(void) = 0;
