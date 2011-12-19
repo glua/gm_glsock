@@ -84,21 +84,11 @@ bool CSockMgr::CloseSockets()
 
 	for( itr = m_vecSocks.begin(); itr != m_vecSocks.end(); itr++ )
 	{
-		(*itr)->Destroy();
+		delete *itr;
 	}
+	m_vecSocks.clear();
 
-	boost::system::error_code ec;
-	for(;;)
-	{
-		Mutex_t::scoped_lock lock(m_Mutex);
-		if( m_vecSocks.empty() )
-			break;
-
-		m_IOService.poll();
-	}
-
-	m_IOService.dispatch(boost::bind(&boost::asio::io_service::stop, &m_IOService));
-	m_IOService.poll();
+	m_IOService.stop();
 
 	return true;
 }

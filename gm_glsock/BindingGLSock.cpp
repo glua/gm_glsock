@@ -775,23 +775,6 @@ void Startup( lua_State* L )
 		Index->SetMember("RemoteAddress", GLSock::RemoteAddress);
 		Index->SetMember("RemotePort", GLSock::RemotePort);
 
-		/*
-		MetaTable->SetMember("Bind", GLSock::Bind);
-		MetaTable->SetMember("Listen", GLSock::Listen);
-		MetaTable->SetMember("Accept", GLSock::Accept);
-		MetaTable->SetMember("Connect", GLSock::Connect);
-		MetaTable->SetMember("Send", GLSock::Send);
-		MetaTable->SetMember("SendTo", GLSock::SendTo);
-		MetaTable->SetMember("Read", GLSock::Read);
-		MetaTable->SetMember("ReadUntil", GLSock::ReadUntil);
-		MetaTable->SetMember("ReadFrom", GLSock::ReadFrom);
-		MetaTable->SetMember("Resolve", GLSock::Resolve);
-		MetaTable->SetMember("Close", GLSock::Close);
-		MetaTable->SetMember("Cancel", GLSock::Cancel);
-		MetaTable->SetMember("Destroy", GLSock::Destroy);
-		MetaTable->SetMember("Type", GLSock::Type);
-		*/
-
 		MetaTable->SetMember("__gc", GLSock::__delete);
 		MetaTable->SetMember("__eq", GLSock::__eq);
 		MetaTable->SetMember("__tostring", GLSock::__tostring);
