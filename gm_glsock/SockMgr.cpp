@@ -84,6 +84,7 @@ bool CSockMgr::CloseSockets()
 
 	for( itr = m_vecSocks.begin(); itr != m_vecSocks.end(); itr++ )
 	{
+		(*itr)->Close();
 		delete *itr;
 	}
 	m_vecSocks.clear();
