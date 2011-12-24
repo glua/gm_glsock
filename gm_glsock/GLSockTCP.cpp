@@ -61,7 +61,7 @@ bool CGLSockTCP::Bind( CEndpoint& Endpoint, Callback_t Callback )
 #endif
 		}
 		if( g_pSockMgr->ValidHandle(this) )
-			g_pSockMgr->StoreCallback( boost::bind(&CGLSockTCP::CallbackBind, this, Callback, this, TranslateErrorMessage(ec), _1) );
+			g_pSockMgr->StoreCallback( this, boost::bind(&CGLSockTCP::CallbackBind, this, Callback, this, TranslateErrorMessage(ec), _1) );
 	}
 	catch (boost::exception& ex)
 	{
@@ -248,7 +248,7 @@ void CGLSockTCP::OnConnect( Callback_t Callback, const boost::system::error_code
 #endif
 
 		if( g_pSockMgr->ValidHandle(this) )
-			g_pSockMgr->StoreCallback( boost::bind(&CGLSockTCP::CallbackConnect, this, Callback, this, TranslateErrorMessage(ec), _1) );
+			g_pSockMgr->StoreCallback( this, boost::bind(&CGLSockTCP::CallbackConnect, this, Callback, this, TranslateErrorMessage(ec), _1) );
 	}
 	else
 	{
@@ -270,7 +270,7 @@ void CGLSockTCP::OnConnect( Callback_t Callback, const boost::system::error_code
 			Lua()->Msg("GLSock(TCP) Connection failed: %s\n", ec.message().c_str());
 #endif
 			if( g_pSockMgr->ValidHandle(this) )
-				g_pSockMgr->StoreCallback( boost::bind(&CGLSockTCP::CallbackConnect, this, Callback, this, TranslateErrorMessage(ec), _1) );
+				g_pSockMgr->StoreCallback( this, boost::bind(&CGLSockTCP::CallbackConnect, this, Callback, this, TranslateErrorMessage(ec), _1) );
 		}
 	}
 }
@@ -301,7 +301,7 @@ void CGLSockTCP::OnSend( Callback_t Callback, unsigned int cubBytes, const boost
 	}
 
 	if( g_pSockMgr->ValidHandle(this) )
-		g_pSockMgr->StoreCallback( boost::bind(&CGLSockTCP::CalllbackSend, this, Callback, this, cubBytes, TranslateErrorMessage(ec), _1) );
+		g_pSockMgr->StoreCallback( this, boost::bind(&CGLSockTCP::CalllbackSend, this, Callback, this, cubBytes, TranslateErrorMessage(ec), _1) );
 }
 
 void CGLSockTCP::CallbackRead( Callback_t Callback, CGLSock* pHandle, GLSockBuffer::CGLSockBuffer* pBuffer, int iErrorMsg, lua_State* L)
@@ -352,7 +352,7 @@ void CGLSockTCP::OnRead( Callback_t Callback, const char* pData, unsigned int cu
 	delete[] pData;
 
 	if( g_pSockMgr->ValidHandle(this) )
-		g_pSockMgr->StoreCallback( boost::bind(&CGLSockTCP::CallbackRead, this, Callback, this, pBuffer, TranslateErrorMessage(ec), _1) );
+		g_pSockMgr->StoreCallback( this, boost::bind(&CGLSockTCP::CallbackRead, this, Callback, this, pBuffer, TranslateErrorMessage(ec), _1) );
 }
 
 void CGLSockTCP::OnReadUntil( Callback_t Callback, std::string strDelimiter, const char* pData, unsigned int cubBytes, const boost::system::error_code& ec )
@@ -367,7 +367,7 @@ void CGLSockTCP::OnReadUntil( Callback_t Callback, std::string strDelimiter, con
 		delete pData;
 
 		if( g_pSockMgr->ValidHandle(this) )
-			g_pSockMgr->StoreCallback( boost::bind(&CGLSockTCP::CallbackRead, this, Callback, this, pBuffer, TranslateErrorMessage(ec), _1) );
+			g_pSockMgr->StoreCallback( this, boost::bind(&CGLSockTCP::CallbackRead, this, Callback, this, pBuffer, TranslateErrorMessage(ec), _1) );
 	}
 	else
 	{
@@ -385,7 +385,7 @@ void CGLSockTCP::OnReadUntil( Callback_t Callback, std::string strDelimiter, con
 				delete pData;
 
 				if( g_pSockMgr->ValidHandle(this) )
-					g_pSockMgr->StoreCallback( boost::bind(&CGLSockTCP::CallbackRead, this, Callback, this, pBuffer, TranslateErrorMessage(ec), _1) );
+					g_pSockMgr->StoreCallback( this, boost::bind(&CGLSockTCP::CallbackRead, this, Callback, this, pBuffer, TranslateErrorMessage(ec), _1) );
 
 				return;
 			}

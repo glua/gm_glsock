@@ -61,7 +61,7 @@ bool CGLSockAcceptor::Bind( CEndpoint& Endpoint, Callback_t Callback )
 		}
 
 		if( g_pSockMgr->ValidHandle(this) )
-			g_pSockMgr->StoreCallback( boost::bind(&CGLSockAcceptor::CallbackBind, this, Callback, this, TranslateErrorMessage(ec), _1) );
+			g_pSockMgr->StoreCallback( this, boost::bind(&CGLSockAcceptor::CallbackBind, this, Callback, this, TranslateErrorMessage(ec), _1) );
 	}
 	catch (boost::exception& ex)
 	{
@@ -107,7 +107,7 @@ bool CGLSockAcceptor::Listen( int iBacklog, Callback_t Callback )
 #endif
 		}
 		if( g_pSockMgr->ValidHandle(this) )
-			g_pSockMgr->StoreCallback( boost::bind(&CGLSockAcceptor::CallbackListen, this, Callback, this, TranslateErrorMessage(ec), _1) );
+			g_pSockMgr->StoreCallback( this, boost::bind(&CGLSockAcceptor::CallbackListen, this, Callback, this, TranslateErrorMessage(ec), _1) );
 	}
 	catch (boost::exception& ex)
 	{
@@ -235,7 +235,7 @@ void CGLSockAcceptor::OnAccept( Callback_t Callback, CGLSockTCP* pSock, const bo
 	}
 
 	if( g_pSockMgr->ValidHandle(this) )
-		g_pSockMgr->StoreCallback( boost::bind(&CGLSockAcceptor::CallbackAccept, this, Callback, this, pSock, TranslateErrorMessage(ec), _1) );
+		g_pSockMgr->StoreCallback( this, boost::bind(&CGLSockAcceptor::CallbackAccept, this, Callback, this, pSock, TranslateErrorMessage(ec), _1) );
 }
 
 void CGLSockAcceptor::OnDestroy( void )
