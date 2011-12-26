@@ -25,8 +25,7 @@ private:
 	boost::thread m_Thread;
 	Mutex_t m_Mutex;
 	std::vector<GLSock::CGLSock*> m_vecSocks;
-	//std::stack<boost::function<void(lua_State*)> > m_Callbacks;
-	std::vector< std::pair<GLSock::CGLSock*, boost::function<void(lua_State*)> > > m_Callbacks;
+	std::stack< std::pair<GLSock::CGLSock*, boost::function<void(lua_State*)> > > m_Callbacks;
 
 public:
 	CSockMgr(void);
@@ -46,7 +45,7 @@ public:
 	{
 		Mutex_t::scoped_lock lock(m_Mutex);
 
-		m_Callbacks.push_back(std::make_pair(pSock, cb));
+		m_Callbacks.push(std::make_pair(pSock, cb));
 	}
 
 	void Poll(lua_State* L)
@@ -57,12 +56,11 @@ public:
 			m_IOService.poll();
 			if( !m_Callbacks.empty() )
 			{
-				std::pair<GLSock::CGLSock*, boost::function<void(lua_State*)> >& cb = *m_Callbacks.rbegin();
+				std::pair<GLSock::CGLSock*, boost::function<void(lua_State*)> > cb = m_Callbacks.top();
+				m_Callbacks.pop();
 
 				if( ValidHandle(cb.first) )
 					cb.second(L);
-
-				m_Callbacks.pop_back();
 			}
 		}
 		catch (boost::exception& ex)
