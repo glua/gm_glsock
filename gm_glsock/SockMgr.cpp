@@ -82,14 +82,25 @@ bool CSockMgr::CloseSockets()
 {
 	std::vector<GLSock::CGLSock*>::iterator itr;
 
-	for( itr = m_vecSocks.begin(); itr != m_vecSocks.end(); itr++ )
+	try
 	{
-		(*itr)->Close();
-		delete *itr;
-	}
-	m_vecSocks.clear();
+		for( itr = m_vecSocks.begin(); itr != m_vecSocks.end(); itr++ )
+		{
+			(*itr)->Close();
+			delete *itr;
+		}
+		m_vecSocks.clear();
 
-	m_IOService.stop();
+		m_IOService.stop();
+	}
+	catch (boost::exception& ex)
+	{
+#if defined(_DEBUG)
+		std::cout << "Dirty cleanup: " << boost::diagnostic_information(ex).c_str() << std::endl;
+#else
+		UNREFERENCED_PARAM(ex);
+#endif
+	}
 
 	return true;
 }

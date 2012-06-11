@@ -187,7 +187,7 @@ bool CGLSockTCP::Close( void )
 	try
 	{
 		m_Sock.cancel(ec);
-		m_Sock.close();
+		m_Sock.close(ec);
 	}
 	catch (boost::exception& ex)
 	{
