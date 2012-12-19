@@ -21,7 +21,7 @@ class CSockMgr
 
 private:
 	boost::asio::io_service m_IOService;
-	boost::asio::io_service::work* m_pWorker;
+	boost::asio::io_service::work m_Worker;
 	boost::thread m_Thread;
 	Mutex_t m_Mutex;
 	std::vector<GLSock::CGLSock*> m_vecSocks;
@@ -31,9 +31,12 @@ public:
 	CSockMgr(void);
 	~CSockMgr(void);
 
-	GLSock::CGLSock* CreateAcceptorSock(lua_State* L);
-	GLSock::CGLSock* CreateTCPSock(lua_State* L, bool bOpen = true);
-	GLSock::CGLSock* CreateUDPSock(lua_State* L);
+	void Startup();
+	void Cleanup();
+
+	GLSock::CGLSock* CreateAcceptorSock(lua_State *state);
+	GLSock::CGLSock* CreateTCPSock(lua_State* state, bool bOpen = true);
+	GLSock::CGLSock* CreateUDPSock(lua_State* state);
 
 	bool RemoveSock(GLSock::CGLSock* pSock);
 	bool ValidHandle(GLSock::CGLSock* pSock);
@@ -48,24 +51,25 @@ public:
 		m_Callbacks.push(std::make_pair(pSock, cb));
 	}
 
-	void Poll(lua_State* L)
+	void Poll(lua_State *state)
 	{
 		Mutex_t::scoped_lock lock(m_Mutex);
 		try
 		{
-			m_IOService.poll();
+			m_IOService.poll_one();
 			if( !m_Callbacks.empty() )
 			{
 				std::pair<GLSock::CGLSock*, boost::function<void(lua_State*)> > cb = m_Callbacks.top();
 				m_Callbacks.pop();
 
 				if( ValidHandle(cb.first) )
-					cb.second(L);
+					cb.second(state);
 			}
 		}
 		catch (boost::exception& ex)
 		{
-			Lua()->Msg("GLSock(Polling): %s\n",  boost::diagnostic_information(ex).c_str());
+			//LUA->Msg("GLSock(Polling): %s\n",  boost::diagnostic_information(ex).c_str());
+			UNREFERENCED_PARAM(ex);
 		}
 	}
 

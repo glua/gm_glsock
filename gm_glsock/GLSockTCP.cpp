@@ -8,7 +8,7 @@ namespace GLSock {
 CGLSockTCP::CGLSockTCP( IOService_t& IOService, lua_State* pLua, bool bOpen ) 
 	: m_Sock(IOService), m_Resolver(IOService)
 {
-	L = pLua;
+	state = pLua;
 	m_nReferences = 0;
 
 	try
@@ -18,23 +18,9 @@ CGLSockTCP::CGLSockTCP( IOService_t& IOService, lua_State* pLua, bool bOpen )
 	}
 	catch (boost::exception& ex)
 	{
-		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
+		//LUA->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
+		UNREFERENCED_PARAM(ex);
 	}
-}
-
-void CGLSockTCP::CallbackBind(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L)
-{
-	pHandle->Reference();
-        
-	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
-
-	Lua()->PushReference(Callback);
-	Lua()->PushUserData(MetaTable, static_cast<void*>(pHandle));
-	Lua()->Push((float)iErrorMsg);
-
-	Lua()->Call(2, 0);
-        
-	pHandle->Unreference();
 }
 
 bool CGLSockTCP::Bind( CEndpoint& Endpoint, Callback_t Callback )
@@ -51,25 +37,24 @@ bool CGLSockTCP::Bind( CEndpoint& Endpoint, Callback_t Callback )
 		if( ec )
 		{
 #if defined(_DEBUG)
-			Lua()->Msg("GLSock(TCP): Unable to bind to %s:%u\n", ep.address().to_string().c_str(), ep.port());
+			//LUA->Msg("GLSock(TCP): Unable to bind to %s:%u\n", ep.address().to_string().c_str(), ep.port());
 #endif
 		}
 		else
 		{
 #if defined(_DEBUG)
-			Lua()->Msg("GLSock(TCP): Bound to %s:%u\n", ep.address().to_string().c_str(), ep.port());
+			//LUA->Msg("GLSock(TCP): Bound to %s:%u\n", ep.address().to_string().c_str(), ep.port());
 #endif
 		}
 		if( g_pSockMgr->ValidHandle(this) )
-			g_pSockMgr->StoreCallback( this, boost::bind(&CGLSockTCP::CallbackBind, this, Callback, this, TranslateErrorMessage(ec), _1) );
+			g_pSockMgr->StoreCallback( this, boost::bind(&CGLSock::CallbackBind, this, Callback, this, TranslateErrorMessage(ec), _1) );
 	}
 	catch (boost::exception& ex)
 	{
 #if defined(_DEBUG)
-		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
-#else
-		UNREFERENCED_PARAM(ex);
+		//LUA->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
+		UNREFERENCED_PARAM(ex);
 		bResult = false;
 	}
 
@@ -93,10 +78,9 @@ bool CGLSockTCP::Connect( std::string strHost, std::string strPort, Callback_t C
 	catch (boost::exception& ex)
 	{
 #if defined(_DEBUG)
-		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
-#else
-		UNREFERENCED_PARAM(ex);
+		//LUA->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
+		UNREFERENCED_PARAM(ex);
 		bResult = false;
 	}
 
@@ -115,10 +99,9 @@ bool CGLSockTCP::Send( const char* cbData, unsigned int cubBuffer, Callback_t Ca
 	catch (boost::exception& ex)
 	{
 #if defined(_DEBUG)
-		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
-#else
-		UNREFERENCED_PARAM(ex);
+		//LUA->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
+		UNREFERENCED_PARAM(ex);
 		bResult = false;
 	}
 
@@ -139,10 +122,9 @@ bool CGLSockTCP::Read( unsigned int cubBuffer, Callback_t Callback )
 	catch (boost::exception& ex)
 	{
 #if defined(_DEBUG)
-		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
-#else
-		UNREFERENCED_PARAM(ex);
+		//LUA->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
+		UNREFERENCED_PARAM(ex);
 		bResult = false;
 	}
 
@@ -163,10 +145,9 @@ bool CGLSockTCP::ReadUntil( std::string strDelimiter, Callback_t Callback )
 	catch (boost::exception& ex)
 	{
 #if defined(_DEBUG)
-		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
-#else
-		UNREFERENCED_PARAM(ex);
+		//LUA->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
+		UNREFERENCED_PARAM(ex);
 		bResult = false;
 	}
 
@@ -192,10 +173,9 @@ bool CGLSockTCP::Close( void )
 	catch (boost::exception& ex)
 	{
 #if defined(_DEBUG)
-		Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
-#else
-		UNREFERENCED_PARAM(ex);
+		//LUA->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
+		UNREFERENCED_PARAM(ex);
 		bResult = false;
 	}
 
@@ -224,38 +204,23 @@ void CGLSockTCP::OnResolve( Callback_t Callback, const boost::system::error_code
 	// TODO: Implement me.
 }
 
-void CGLSockTCP::CallbackConnect( Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L )
-{
-	pHandle->Reference();
-        
-	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
-
-	Lua()->PushReference(Callback);
-	Lua()->PushUserData(MetaTable, static_cast<void*>(pHandle));
-	Lua()->Push((float)iErrorMsg);
-
-	Lua()->Call(2, 0);
-        
-	pHandle->Unreference();
-}
-
 void CGLSockTCP::OnConnect( Callback_t Callback, const boost::system::error_code& ec, TCPResolver_t::iterator endpoint_iterator )
 {
 	if( !ec )
 	{
 #if defined(_DEBUG)
-		Lua()->Msg("GLSock(TCP): Connected to Host!\n");
+		//LUA->Msg("GLSock(TCP): Connected to Host!\n");
 #endif
 
 		if( g_pSockMgr->ValidHandle(this) )
-			g_pSockMgr->StoreCallback( this, boost::bind(&CGLSockTCP::CallbackConnect, this, Callback, this, TranslateErrorMessage(ec), _1) );
+			g_pSockMgr->StoreCallback( this, boost::bind(&CGLSock::CallbackConnect, this, Callback, this, TranslateErrorMessage(ec), _1) );
 	}
 	else
 	{
 		if( endpoint_iterator != boost::asio::ip::tcp::resolver::iterator() )
 		{
 #if defined(_DEBUG)
-			Lua()->Msg("GLSock(TCP): Connect attempt failed, trying next resolver.\n");
+			//LUA->Msg("GLSock(TCP): Connect attempt failed, trying next resolver.\n");
 #endif
 
 			boost::asio::ip::tcp::endpoint endpoint = *endpoint_iterator;
@@ -267,28 +232,12 @@ void CGLSockTCP::OnConnect( Callback_t Callback, const boost::system::error_code
 		else
 		{
 #if defined(_DEBUG)
-			Lua()->Msg("GLSock(TCP) Connection failed: %s\n", ec.message().c_str());
+			//LUA->Msg("GLSock(TCP) Connection failed: %s\n", ec.message().c_str());
 #endif
 			if( g_pSockMgr->ValidHandle(this) )
-				g_pSockMgr->StoreCallback( this, boost::bind(&CGLSockTCP::CallbackConnect, this, Callback, this, TranslateErrorMessage(ec), _1) );
+				g_pSockMgr->StoreCallback( this, boost::bind(&CGLSock::CallbackConnect, this, Callback, this, TranslateErrorMessage(ec), _1) );
 		}
 	}
-}
-
-void CGLSockTCP::CalllbackSend( Callback_t Callback, CGLSock* pHandle, unsigned int cubBytes, int iErrorMsg, lua_State* L )
-{
-	pHandle->Reference();
-        
-	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
-
-	Lua()->PushReference(Callback);
-	Lua()->PushUserData(MetaTable, static_cast<void*>(pHandle));
-	Lua()->PushLong(cubBytes);
-	Lua()->Push((float)iErrorMsg);
-
-	Lua()->Call(3, 0);
-        
-	pHandle->Unreference();
 }
 
 void CGLSockTCP::OnSend( Callback_t Callback, unsigned int cubBytes, const boost::system::error_code& ec )
@@ -296,39 +245,12 @@ void CGLSockTCP::OnSend( Callback_t Callback, unsigned int cubBytes, const boost
 	if( ec )
 	{
 #if defined(_DEBUG)
-		Lua()->Msg("GLSock(TCP): %s\n", ec.message().c_str());
+		//LUA->Msg("GLSock(TCP): %s\n", ec.message().c_str());
 #endif
 	}
 
 	if( g_pSockMgr->ValidHandle(this) )
-		g_pSockMgr->StoreCallback( this, boost::bind(&CGLSockTCP::CalllbackSend, this, Callback, this, cubBytes, TranslateErrorMessage(ec), _1) );
-}
-
-void CGLSockTCP::CallbackRead( Callback_t Callback, CGLSock* pHandle, GLSockBuffer::CGLSockBuffer* pBuffer, int iErrorMsg, lua_State* L)
-{
-	pHandle->Reference();
-        
-	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCK_NAME, GLSOCK_TYPE);
-	Lua()->PushReference(Callback);
-	Lua()->PushUserData(MetaTable, static_cast<void*>(pHandle));
-
-	if( !pBuffer )
-	{
-		Lua()->PushNil();
-	}
-	else
-	{
-		// TODO: See if the reference should last longer
-		CAutoUnRef MetaTableBuffer = Lua()->GetMetaTable(GLSOCKBUFFER_NAME, GLSOCKBUFFER_TYPE);
-
-		pBuffer->Reference();
-		Lua()->PushUserData(MetaTableBuffer, static_cast<void*>(pBuffer));
-	}
-
-	Lua()->Push((float)iErrorMsg);
-	Lua()->Call(3, 0);
-        
-	pHandle->Unreference();
+		g_pSockMgr->StoreCallback( this, boost::bind(&CGLSock::CallbackSend, this, Callback, this, cubBytes, TranslateErrorMessage(ec), _1) );
 }
 
 void CGLSockTCP::OnRead( Callback_t Callback, const char* pData, unsigned int cubBytes, const boost::system::error_code& ec )
@@ -338,7 +260,7 @@ void CGLSockTCP::OnRead( Callback_t Callback, const char* pData, unsigned int cu
 	if( ec )
 	{
 #if defined(_DEBUG)
-		Lua()->Msg("GLSock(TCP): %s\n", ec.message().c_str());
+		//LUA->Msg("GLSock(TCP): %s\n", ec.message().c_str());
 #endif
 	}
 	else
@@ -352,7 +274,7 @@ void CGLSockTCP::OnRead( Callback_t Callback, const char* pData, unsigned int cu
 	delete[] pData;
 
 	if( g_pSockMgr->ValidHandle(this) )
-		g_pSockMgr->StoreCallback( this, boost::bind(&CGLSockTCP::CallbackRead, this, Callback, this, pBuffer, TranslateErrorMessage(ec), _1) );
+		g_pSockMgr->StoreCallback( this, boost::bind(&CGLSock::CallbackRead, this, Callback, this, pBuffer, TranslateErrorMessage(ec), _1) );
 }
 
 void CGLSockTCP::OnReadUntil( Callback_t Callback, std::string strDelimiter, const char* pData, unsigned int cubBytes, const boost::system::error_code& ec )
@@ -362,12 +284,12 @@ void CGLSockTCP::OnReadUntil( Callback_t Callback, std::string strDelimiter, con
 	if( ec )
 	{
 #if defined(_DEBUG)
-		Lua()->Msg("GLSock(TCP): %s\n", ec.message().c_str());
+		//LUA->Msg("GLSock(TCP): %s\n", ec.message().c_str());
 #endif
 		delete pData;
 
 		if( g_pSockMgr->ValidHandle(this) )
-			g_pSockMgr->StoreCallback( this, boost::bind(&CGLSockTCP::CallbackRead, this, Callback, this, pBuffer, TranslateErrorMessage(ec), _1) );
+			g_pSockMgr->StoreCallback( this, boost::bind(&CGLSock::CallbackRead, this, Callback, this, pBuffer, TranslateErrorMessage(ec), _1) );
 	}
 	else
 	{

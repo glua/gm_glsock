@@ -5,20 +5,18 @@
 #pragma once
 #endif
 
-#define NO_SDK
-#include "GMLuaModule.h"
-
-#include <vector>
-#include <string>
-
-#include <boost/shared_ptr.hpp>
-
-#include "Lock.h"
+#include "Common.h"
+#include "BufferMgr.h"
 
 namespace GLSockBuffer {
 
-void Startup( lua_State* L );
-void Cleanup( lua_State* L );
+class CGLSockBuffer;
+
+CGLSockBuffer* CheckBuffer(lua_State *state, int idx);
+void PushBuffer(lua_State *state, CGLSockBuffer *pBuffer);
+
+void Startup( lua_State *state );
+void Cleanup( lua_State *state );
 
 }
 

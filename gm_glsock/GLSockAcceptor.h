@@ -12,7 +12,7 @@ private:
 	boost::mutex m_Mutex;
 	int m_nReferences;
 	AcceptorSock_t m_Sock;
-	lua_State* L;
+	lua_State *state;
 
 public:
 	CGLSockAcceptor(IOService_t& IOService_t, lua_State* pLua);
@@ -50,20 +50,15 @@ public:
 		catch (boost::exception& ex)
 		{
 #if defined(_DEBUG)
-			Lua()->Msg("GLSock(Acceptor): %s\n",  boost::diagnostic_information(ex).c_str());
-#else
-			UNREFERENCED_PARAM(ex);
+			//LUA->Msg("GLSock(Acceptor): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
+			UNREFERENCED_PARAM(ex);
 		}
 	}
 
 private:
 	void OnAccept(Callback_t Callback, class CGLSockTCP* pSock, const boost::system::error_code& ec);
 	void OnDestroy(void);
-
-	void CallbackBind(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L);
-	void CallbackListen(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L);
-	void CallbackAccept(Callback_t Callback, CGLSock* pHandle, CGLSock* pSock, int iErrorMsg, lua_State* L);
 };
 
 }

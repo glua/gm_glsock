@@ -1,4 +1,4 @@
-require'glsock'
+require'glsock2'
 
 -- TODO: Replace the error descriptor with a actual description.
 GLSockErrorCodes = 

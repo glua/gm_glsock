@@ -5,15 +5,16 @@
 #pragma once
 #endif
 
-#define NO_SDK
-#include "GMLuaModule.h"
-
-#include "Lock.h"
+#include "Common.h"
+#include "GLSock.h"
 
 namespace GLSock {
 
-void Startup(lua_State* L);
-void Cleanup(lua_State* L);
+CGLSock* CheckSocket(lua_State *state, int idx);
+void PushSocket(lua_State *state, CGLSock *pSock);
+
+void Startup(lua_State *state);
+void Cleanup(lua_State *state);
 
 } // GLSock
 

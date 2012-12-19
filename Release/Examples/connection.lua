@@ -29,9 +29,10 @@ function OnConnect(sck, errno)
 		print("Connection Established")
 
 		local data = GLSockBuffer()
-		data:Write("GET / HTTP/1.0\r\n");
-		data:Write("\r\n");
-
+		data:Write("GET / HTTP/1.1\r\n")
+		data:Write("Host: garry.tv\r\n")
+		data:Write("\r\n")
+		
 		sck:Send(data, OnSend)
 	else
 		print("Connect Error: "..tonumber(errno))

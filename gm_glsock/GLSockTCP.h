@@ -17,7 +17,7 @@ private:
 	int m_nReferences;
 	TCPSock_t m_Sock;
 	TCPResolver_t m_Resolver;
-	lua_State* L;
+	lua_State *state;
 	std::string m_strBuffered;
 
 public:
@@ -59,10 +59,9 @@ public:
 		catch (boost::exception& ex)
 		{
 #if defined(_DEBUG)
-			Lua()->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
-#else
-			UNREFERENCED_PARAM(ex);
+			//LUA->Msg("GLSock(TCP): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
+			UNREFERENCED_PARAM(ex);
 		}
 	}
 	virtual std::string RemoteAddress(void)
@@ -95,11 +94,6 @@ private:
 	void OnRead(Callback_t Callback, const char* pData, unsigned int cubBytes, const boost::system::error_code& ec);
 	void OnReadUntil(Callback_t Callback, std::string strDelimiter, const char* pData, unsigned int cubBytes, const boost::system::error_code& ec);
 	void OnDestroy(void);
-
-	void CallbackBind(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L);
-	void CallbackConnect( Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L );
-	void CalllbackSend( Callback_t Callback, CGLSock* pHandle, unsigned int cubBytes, int iErrorMsg, lua_State* L );
-	void CallbackRead( Callback_t Callback, CGLSock* pHandle, GLSockBuffer::CGLSockBuffer* pBuffer, int iErrorMsg, lua_State* L);
 };
 
 }

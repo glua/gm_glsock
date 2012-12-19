@@ -24,6 +24,6 @@ public:
 	}
 };
 
-//#define SCOPED_LOCK(l) boost::recursive_mutex::scoped_lock __Lock(l); CScopedMutex<ILuaInterface> __LuaLock(Lua())
+//#define SCOPED_LOCK(l) boost::recursive_mutex::scoped_lock __Lock(l); CScopedMutex<ILuaInterface> __LuaLock(LUA)
 
 #endif // LOCK_H

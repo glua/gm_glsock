@@ -17,7 +17,7 @@ private:
 	int m_nReferences;
 	UDPSock_t m_Sock;
 	UDPResolver_t m_Resolver;
-	lua_State* L;
+	lua_State *state;
 
 public:
 	CGLSockUDP(IOService_t& IOService, lua_State* pLua);
@@ -56,10 +56,9 @@ public:
 		catch (boost::exception& ex)
 		{
 #if defined(_DEBUG)
-			Lua()->Msg("GLSock(UDP): %s\n",  boost::diagnostic_information(ex).c_str());
-#else
-			UNREFERENCED_PARAM(ex);
+			//LUA->Msg("GLSock(UDP): %s\n",  boost::diagnostic_information(ex).c_str());
 #endif
+			UNREFERENCED_PARAM(ex);
 		}
 	}
 	virtual std::string RemoteAddress(void)
@@ -89,10 +88,6 @@ private:
 	void OnSend(Callback_t Callback, unsigned int cubBytes, const boost::system::error_code& ec, UDPResolver_t::iterator iterator, const char* pBuffer, unsigned int cubBuffer);
 	void OnRead(Callback_t Callback, boost::asio::ip::udp::endpoint* pSender, const char* pData, unsigned int cubBytes, const boost::system::error_code& ec);
 	void OnDestroy(void);
-
-	void CallbackBind(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State* L);
-	void CallbackSend(Callback_t Callback, CGLSock* pHandle, unsigned int cubBytes, int iErrorMsg, lua_State* L);
-	void CallbackRead(Callback_t Callback, CGLSock* pHandle, std::string strSender, unsigned short usPort, GLSockBuffer::CGLSockBuffer* pBuffer, int iErrorMsg, lua_State* L);
 };
 
 }

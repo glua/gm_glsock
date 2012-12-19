@@ -10,7 +10,7 @@
 #define SOCKBUFFER_SEEK_CUR		3
 
 #define GLSOCKBUFFER_NAME		"GLSockBuffer"
-#define GLSOCKBUFFER_TYPE		52893
+#define GLSOCKBUFFER_TYPE		(GarrysMod::Lua::Type::COUNT + 45)
 
 #include <string>
 #include <cstring>

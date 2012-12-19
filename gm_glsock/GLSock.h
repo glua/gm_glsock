@@ -5,25 +5,12 @@
 #pragma once
 #endif
 
-#define NO_SDK
-
-#include "GMLuaModule.h"
-#include "Lock.h"
-
-#include <boost/asio.hpp>
-#include <boost/thread.hpp>
-#include <boost/bind.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/asio/buffer.hpp>
-#include <boost/function.hpp>
-#include <boost/lexical_cast.hpp>
-#include <string>
-#include <sstream>
+#include "BufferMgr.h"
 
 namespace GLSock {
 
 #define GLSOCK_NAME							"GLSock"
-#define GLSOCK_TYPE							59313
+#define GLSOCK_TYPE							(GarrysMod::Lua::Type::COUNT + 44)
 
 // Socket Types
 enum ESockType
@@ -112,6 +99,14 @@ class CGLSock
 public:
 	int m_nTableRef;
 
+	void CallbackBind(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State *state);
+	void CallbackListen(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State *state);
+	void CallbackAccept(Callback_t Callback, CGLSock* pHandle, CGLSock* pSock, int iErrorMsg, lua_State *state);
+	void CallbackReadFrom(Callback_t Callback, CGLSock* pHandle, std::string strSender, unsigned short usPort, GLSockBuffer::CGLSockBuffer* pBuffer, int iErrorMsg, lua_State *state);
+	void CallbackConnect( Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State *state );
+	void CallbackRead( Callback_t Callback, CGLSock* pHandle, GLSockBuffer::CGLSockBuffer* pBuffer, int iErrorMsg, lua_State *state);
+	void CallbackSend(Callback_t Callback, CGLSock* pHandle, unsigned int cubBytes, int iErrorMsg, lua_State *state);
+
 	virtual bool Bind(CEndpoint& Endpoint, Callback_t Callback);
 	virtual bool Listen(int iBacklog, Callback_t Callback);
 	virtual bool Accept(Callback_t Callback);
@@ -133,6 +128,7 @@ public:
 	virtual void Destroy(void) = 0;
 
 	virtual int TranslateErrorMessage(const boost::system::error_code& ec);
+	
 };
 
 } // GLSock

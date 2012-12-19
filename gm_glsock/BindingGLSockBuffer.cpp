@@ -6,217 +6,187 @@
 
 namespace GLSockBuffer {
 
-static int __new(lua_State* L)
+CGLSockBuffer* CheckBuffer(lua_State *state, int idx)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
-		return 0;
+	LUA->CheckType(idx, GLSOCKBUFFER_TYPE);
 
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
+	GarrysMod::Lua::UserData *pUserData = (GarrysMod::Lua::UserData*)LUA->GetUserdata(idx);
+	if( !pUserData )
+		return NULL;
 
+	if( pUserData->type != GLSOCKBUFFER_TYPE )
+		return NULL;
+
+	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>(pUserData->data);
+	if( !g_pBufferMgr->ValidHandle(pBuffer) )
+		return NULL;
+
+	return pBuffer;
+}
+
+void PushBuffer(lua_State *state, CGLSockBuffer *pBuffer)
+{
+	GarrysMod::Lua::UserData *pUserData = static_cast<GarrysMod::Lua::UserData*>(LUA->NewUserdata(sizeof(GarrysMod::Lua::UserData)));
+	int iRefUserData = LUA->ReferenceCreate();
+
+	pUserData->type = GLSOCKBUFFER_TYPE;
+	pUserData->data = static_cast<void*>(pBuffer);
+
+	LUA->CreateMetaTableType(GLSOCKBUFFER_NAME, GLSOCKBUFFER_TYPE);
+	int iRefMetatable = LUA->ReferenceCreate();
+
+	LUA->ReferencePush(iRefUserData);
+	LUA->ReferencePush(iRefMetatable);
+	LUA->SetMetaTable(-2);
+
+	LUA->ReferenceFree(iRefMetatable);
+	LUA->ReferenceFree(iRefUserData);
+}
+
+static int __new(lua_State *state)
+{
 	CGLSockBuffer* pBuffer = g_pBufferMgr->Create();
 	pBuffer->Reference();
 
-	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCKBUFFER_NAME, GLSOCKBUFFER_TYPE);
-	Lua()->PushUserData(MetaTable, static_cast<void*>(pBuffer));
+	PushBuffer(state, pBuffer);
 
 	return 1;
 }
 
-static int __delete(lua_State* L)
+static int __delete(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
 
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
-
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-		return 0;
-
+	int nTableRef = pBuffer->m_nTableRef;
 	if( pBuffer->Unreference() <= 0 )
 	{
-		Lua()->FreeReference(pBuffer->m_nTableRef);
+		LUA->ReferenceFree(nTableRef);
 	}
 
 	return 0;
 }
 
-static int __index(lua_State* L)
+static int __index(lua_State *state)
 {
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
-	}
 
-#if defined(GetObject)
-#undef GetObject
-#endif
-
-	ILuaObject* pMember = NULL;
-
-	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCKBUFFER_NAME, GLSOCKBUFFER_TYPE);
+	LUA->CreateMetaTableType(GLSOCKBUFFER_NAME, GLSOCKBUFFER_TYPE);
+	CAutoUnRef Metatable(state);
 	{
-		ILuaObject* pFunctions = MetaTable->GetMember("__functions");
-		pMember = pFunctions->GetMember(Lua()->GetObject(2));
-		if( pMember )
-		{
-			Lua()->Push(pMember);
+		Metatable.Push();
+		LUA->PushString("__functions");
+		LUA->RawGet(-2);
+
+		LUA->Push(2);
+		LUA->RawGet(-2);
+
+		if( !LUA->IsType(-1, GarrysMod::Lua::Type::NIL) )
 			return 1;
-		}
+		else
+			LUA->Pop();
 	}
 
 	if( pBuffer->m_nTableRef == 0 )
 		return 0;
 
-	Lua()->PushReference(pBuffer->m_nTableRef);
-	CAutoUnRef Table(Lua()->GetObject(-1));
-	{
-		Lua()->Pop();
-		pMember = Table->GetMember(Lua()->GetObject(2));
-	}
+	LUA->ReferencePush(pBuffer->m_nTableRef);
+	LUA->Push(2);
+	LUA->RawGet(-2);
 
-	Lua()->Push(pMember);
 	return 1;
 }
 
-static int __newindex(lua_State* L)
+static int __newindex(lua_State *state)
 {
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-
-#if defined(GetObject)
-#undef GetObject
-#endif
-
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
-	}
 
 	if( pBuffer->m_nTableRef == 0 )
 	{
-		Lua()->NewTable();
-		pBuffer->m_nTableRef = Lua()->GetReference(-1, true);
+		LUA->CreateTable();
+		pBuffer->m_nTableRef = LUA->ReferenceCreate();
 	}
 
-	Lua()->PushReference(pBuffer->m_nTableRef);
-	CAutoUnRef Table(Lua()->GetObject(-1));
-	{
-		Lua()->Pop();
-		Table->SetMember(Lua()->GetObject(2), Lua()->GetObject(3));
-	}
+	LUA->ReferencePush(pBuffer->m_nTableRef);
+	LUA->Push(2);
+	LUA->Push(3);
+	LUA->RawSet(-3);
 
 	return 0;
 }
 
-static int __tostring(lua_State* L)
+static int __tostring(lua_State *state)
 {
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
-	}
 
 	std::stringstream ss;
 	ss << "GLSockBuffer: " << (void*)pBuffer;
 
 	std::string strType = ss.str();
-	Lua()->Push(strType.c_str());
+	LUA->PushString(strType.c_str());
 
 	return 1;
 }
 
-static int __eq(lua_State* L)
+static int __eq(lua_State *state)
 {
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-	Lua()->CheckType(2, GLSOCKBUFFER_TYPE);
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
+		return 0;
 
-	Lua()->Push(Lua()->GetUserData(1) == Lua()->GetUserData(2));
+	CGLSockBuffer* pBufferCmp = CheckBuffer(state, 2);
+	if( !pBuffer )
+		return 0;
+
+	LUA->PushBool(pBuffer == pBufferCmp);
 	return 1;
 }
 
-static int Write(lua_State* L)
+static int Write(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
 
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
+	LUA->CheckType(2, GarrysMod::Lua::Type::STRING);
 
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-	Lua()->CheckType(2, GLua::TYPE_STRING);
+	unsigned int nLen = 0;
+	const char *pData = LUA->GetString(2, &nLen);
 
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
-	}
-
-	if( Lua()->GetType(2) != GLua::TYPE_STRING )
-		return 0;
-	std::string strData( Lua()->GetString(2), Lua()->StringLength(2) );
-
-	Lua()->PushLong( pBuffer->Write(strData.c_str(), strData.size()) );
+	LUA->PushNumber( pBuffer->Write(pData, nLen) );
 	return 1;
 }
 
-static int Read(lua_State* L)
+static int Read(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
 
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
+	LUA->CheckType(2, GarrysMod::Lua::Type::NUMBER);
 
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-	Lua()->CheckType(2, GLua::TYPE_NUMBER);
-
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
-	}
-
-	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
-		return 0;
-	unsigned int nReadBytes = Lua()->GetInteger(2);
+	unsigned int nReadBytes = static_cast<unsigned int>(LUA->GetNumber(2));
 	
 	char* szData = new char[nReadBytes + 1];
-
 	unsigned int nRead = pBuffer->Read(szData, nReadBytes);
 	szData[nRead] = '\0';
 
 	if( nReadBytes > 0 )
 	{
-		Lua()->PushLong(nReadBytes);
-		Lua()->PushDataString(szData, nReadBytes);
+		LUA->PushNumber(static_cast<double>(nReadBytes));
+		LUA->PushString(szData, nReadBytes);
 	}
 	else
 	{
-		Lua()->PushLong(0);
-		Lua()->PushNil();
+		LUA->PushNumber(0);
+		LUA->PushNil();
 	}
 
 	delete[] szData;
@@ -224,53 +194,27 @@ static int Read(lua_State* L)
 	return 2;
 }
 
-static int WriteString(lua_State* L)
+static int WriteString(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
 
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
+	LUA->CheckType(2, GarrysMod::Lua::Type::STRING);
 
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-	Lua()->CheckType(2, GLua::TYPE_STRING);
+	const char *pData = LUA->GetString(2);
 
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
-	}
+	LUA->PushNumber( static_cast<double>(pBuffer->Write(pData, strlen(pData) + 1)) );
 
-	if( Lua()->GetType(2) != GLua::TYPE_STRING )
-		return 0;
-	std::string strData( Lua()->GetString(2) );
-
-	Lua()->PushLong( pBuffer->Write(strData.c_str(), strData.size() + 1) );
 	return 1;
 }
 
-static int ReadString(lua_State* L)
+static int ReadString(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
-
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
-
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
 	
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
-	}
-
 	unsigned int uStringLength = 0;
 	const char* pData = pBuffer->Buffer();
 	bool bValid = false;
@@ -288,635 +232,410 @@ static int ReadString(lua_State* L)
 	if( bValid )
 	{
 		// Copy string.
-		Lua()->PushLong(uStringLength + 1);
+		LUA->PushNumber(static_cast<double>(uStringLength + 1));
 		std::string strData( pData + pBuffer->Tell(), uStringLength );
-		Lua()->Push(strData.c_str());
+		LUA->PushString(pData + pBuffer->Tell());
 
 		// Update position.
 		pBuffer->Seek(uStringLength + 1, SOCKBUFFER_SEEK_CUR);
 	}
 	else
 	{
-		Lua()->PushLong(0);
-		Lua()->PushNil();
+		LUA->PushNumber(0);
+		LUA->PushNil();
 	}
 
 	return 2;
 }
 
-static int WriteDouble(lua_State* L)
+static int WriteDouble(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
 
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
+	LUA->CheckType(2, GarrysMod::Lua::Type::NUMBER);
+	double nValue = LUA->GetNumber(2);
 
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-	Lua()->CheckType(2, GLua::TYPE_NUMBER);
-
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
+	if( LUA->Top() >= 3 )
 	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
+		LUA->CheckType(3, GarrysMod::Lua::Type::BOOL);
+
+		bool bSwap = LUA->GetBool(3);
+		if( bSwap )
+			pBuffer->SwapEndian(nValue);
 	}
 
-	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
-		return 0;
-	double nValue = Lua()->GetDouble(2);
-
-	if( Lua()->GetStackTop() >= 3 )
-	{
-		Lua()->CheckType(3, GLua::TYPE_BOOL);
-		if( Lua()->GetType(3) == GLua::TYPE_BOOL )
-		{
-			bool bSwap = Lua()->GetBool(3);
-			if( bSwap )
-				pBuffer->SwapEndian(nValue);
-		}
-	}
-
-	Lua()->PushLong( pBuffer->Write(nValue) );
+	LUA->PushNumber( static_cast<double>(pBuffer->Write(nValue)) );
 	return 1;
 }
 
-static int ReadDouble(lua_State* L)
+static int ReadDouble(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
-
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
-
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
-	}
 
 	double nValue = 0;
 	unsigned int nRead = pBuffer->Read(nValue);
 
-	if( Lua()->GetStackTop() >= 2 )
+	if( LUA->Top() >= 2 )
 	{
-		Lua()->CheckType(2, GLua::TYPE_BOOL);
-		if( Lua()->GetType(2) == GLua::TYPE_BOOL )
-		{
-			bool bSwap = Lua()->GetBool(2);
-			if( bSwap )
-				pBuffer->SwapEndian(nValue);
-		}
+		LUA->CheckType(2, GarrysMod::Lua::Type::BOOL);
+
+		bool bSwap = LUA->GetBool(2);
+		if( bSwap )
+			pBuffer->SwapEndian(nValue);
 	}
 
 	if( nRead == 0 )
 	{
-		Lua()->PushLong(0);
-		Lua()->PushNil();
+		LUA->PushNumber(0);
+		LUA->PushNil();
 	}
 	else
 	{
-		Lua()->PushLong(nRead);
-		Lua()->PushDouble(nValue);
+		LUA->PushNumber(static_cast<double>(nRead));
+		LUA->PushNumber(static_cast<double>(nValue));
 	}
 
 	return 2;
 }
 
-static int WriteFloat(lua_State* L)
+static int WriteFloat(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
 
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
+	LUA->CheckType(2, GarrysMod::Lua::Type::NUMBER);
 
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-	Lua()->CheckType(2, GLua::TYPE_NUMBER);
+	float nValue = static_cast<float>(LUA->GetNumber(2));
 
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
+	if( LUA->Top() >= 3 )
 	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
+		LUA->CheckType(3, GarrysMod::Lua::Type::BOOL);
+
+		bool bSwap = LUA->GetBool(3);
+		if( bSwap )
+			pBuffer->SwapEndian(nValue);
 	}
 
-	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
-		return 0;
-	float nValue = Lua()->GetNumber(2);
-
-	if( Lua()->GetStackTop() >= 3 )
-	{
-		Lua()->CheckType(3, GLua::TYPE_BOOL);
-		if( Lua()->GetType(3) == GLua::TYPE_BOOL )
-		{
-			bool bSwap = Lua()->GetBool(3);
-			if( bSwap )
-				pBuffer->SwapEndian(nValue);
-		}
-	}
-
-	Lua()->PushLong( pBuffer->Write(nValue) );
+	LUA->PushNumber( static_cast<double>(pBuffer->Write(nValue)) );
 	return 1;
 }
 
-static int ReadFloat(lua_State* L)
+static int ReadFloat(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
-
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
-
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
-	}
 
 	float nValue = 0;
 	unsigned int nRead = pBuffer->Read(nValue);
 
-	if( Lua()->GetStackTop() >= 2 )
+	if( LUA->Top() >= 2 )
 	{
-		Lua()->CheckType(2, GLua::TYPE_BOOL);
-		if( Lua()->GetType(2) == GLua::TYPE_BOOL )
-		{
-			bool bSwap = Lua()->GetBool(2);
-			if( bSwap )
-				pBuffer->SwapEndian(nValue);
-		}
+		LUA->CheckType(2, GarrysMod::Lua::Type::BOOL);
+
+		bool bSwap = LUA->GetBool(2);
+		if( bSwap )
+			pBuffer->SwapEndian(nValue);
 	}
 
 	if( nRead == 0 )
 	{
-		Lua()->PushLong(0);
-		Lua()->PushNil();
+		LUA->PushNumber(0);
+		LUA->PushNil();
 	}
 	else
 	{
-		Lua()->PushLong(nRead);
-		Lua()->Push(nValue);
+		LUA->PushNumber(nRead);
+		LUA->PushNumber(static_cast<double>(nValue));
 	}
 
 	return 2;
 }
 
-static int WriteLong(lua_State* L)
+static int WriteLong(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
 
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
+	LUA->CheckType(2, GarrysMod::Lua::Type::NUMBER);
 
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-	Lua()->CheckType(2, GLua::TYPE_NUMBER);
+	unsigned int nValue = static_cast<unsigned int>(LUA->GetNumber(2));
 
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
+	if( LUA->Top() >= 3 )
 	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
+		LUA->CheckType(3, GarrysMod::Lua::Type::BOOL);
+
+		bool bSwap = LUA->GetBool(3);
+		if( bSwap )
+			pBuffer->SwapEndian(nValue);
 	}
 
-	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
-		return 0;
-	unsigned int nValue = Lua()->GetInteger(2);
-
-	if( Lua()->GetStackTop() >= 3 )
-	{
-		Lua()->CheckType(3, GLua::TYPE_BOOL);
-		if( Lua()->GetType(3) == GLua::TYPE_BOOL )
-		{
-			bool bSwap = Lua()->GetBool(3);
-			if( bSwap )
-				pBuffer->SwapEndian(nValue);
-		}
-	}
-
-	Lua()->PushLong( pBuffer->Write(nValue) );
+	LUA->PushNumber( static_cast<double>(pBuffer->Write(nValue)) );
 	return 1;
 }
 
-static int ReadLong(lua_State* L)
+static int ReadLong(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
-
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
-
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
-	}
 
 	unsigned int nValue = 0;
 	unsigned int nRead = pBuffer->Read(nValue);
 
-	if( Lua()->GetStackTop() >= 2 )
+	if( LUA->Top() >= 2 )
 	{
-		Lua()->CheckType(2, GLua::TYPE_BOOL);
-		if( Lua()->GetType(2) == GLua::TYPE_BOOL )
-		{
-			bool bSwap = Lua()->GetBool(2);
-			if( bSwap )
-				pBuffer->SwapEndian(nValue);
-		}
+		LUA->CheckType(2, GarrysMod::Lua::Type::BOOL);
+
+		bool bSwap = LUA->GetBool(2);
+		if( bSwap )
+			pBuffer->SwapEndian(nValue);
 	}
 
 	if( nRead == 0 )
 	{
-		Lua()->PushLong(0);
-		Lua()->PushNil();
+		LUA->PushNumber(0);
+		LUA->PushNil();
 	}
 	else
 	{
-		Lua()->PushLong(nRead);
-		Lua()->PushLong(nValue);
+		LUA->PushNumber(static_cast<double>(nRead));
+		LUA->PushNumber(static_cast<double>(nValue));
 	}
 
 	return 2;
 }
 
-static int WriteShort(lua_State* L)
+static int WriteShort(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
 
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
+	LUA->CheckType(2, GarrysMod::Lua::Type::NUMBER);
 
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-	Lua()->CheckType(2, GLua::TYPE_NUMBER);
+	unsigned short nValue = static_cast<unsigned short>(LUA->GetNumber(2));
 
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
+	if( LUA->Top() >= 3 )
 	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
+		LUA->CheckType(3, GarrysMod::Lua::Type::BOOL);
+
+		bool bSwap = LUA->GetBool(3);
+		if( bSwap )
+			pBuffer->SwapEndian(nValue);
 	}
 
-	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
-		return 0;
-	unsigned short nValue = (unsigned short)Lua()->GetInteger(2);
-
-	if( Lua()->GetStackTop() >= 3 )
-	{
-		Lua()->CheckType(3, GLua::TYPE_BOOL);
-		if( Lua()->GetType(3) == GLua::TYPE_BOOL )
-		{
-			bool bSwap = Lua()->GetBool(3);
-			if( bSwap )
-				pBuffer->SwapEndian(nValue);
-		}
-	}
-
-	Lua()->PushLong( pBuffer->Write(nValue) );
+	LUA->PushNumber( static_cast<double>(pBuffer->Write(nValue)) );
 	return 1;
 }
 
-static int ReadShort(lua_State* L)
+static int ReadShort(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
-
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
-
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
-	}
 
 	unsigned short nValue = 0;
 	unsigned int nRead = pBuffer->Read(nValue);
 
-	if( Lua()->GetStackTop() >= 2 )
+	if( LUA->Top() >= 2 )
 	{
-		Lua()->CheckType(2, GLua::TYPE_BOOL);
-		if( Lua()->GetType(2) == GLua::TYPE_BOOL )
-		{
-			bool bSwap = Lua()->GetBool(2);
-			if( bSwap )
-				pBuffer->SwapEndian(nValue);
-		}
+		LUA->CheckType(2, GarrysMod::Lua::Type::BOOL);
+
+		bool bSwap = LUA->GetBool(2);
+		if( bSwap )
+			pBuffer->SwapEndian(nValue);
 	}
 
 	if( nRead == 0 )
 	{
-		Lua()->PushLong(0);
-		Lua()->PushNil();
+		LUA->PushNumber(0);
+		LUA->PushNil();
 	}
 	else
 	{
-		Lua()->PushLong(nRead);
-		Lua()->PushLong(nValue);
+		LUA->PushNumber(static_cast<double>(nRead));
+		LUA->PushNumber(static_cast<double>(nValue));
 	}
 
 	return 2;
 }
 
-static int WriteByte(lua_State* L)
+static int WriteByte(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
 
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
+	LUA->CheckType(2, GarrysMod::Lua::Type::NUMBER);
+	
+	unsigned char nValue = static_cast<unsigned char>(LUA->GetNumber(2));
 
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-	Lua()->CheckType(2, GLua::TYPE_NUMBER);
-
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
-	}
-
-	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
-		return 0;
-	unsigned char nValue = (unsigned char)Lua()->GetInteger(2);
-
-	Lua()->PushLong( pBuffer->Write(nValue) );
+	LUA->PushNumber( static_cast<double>(pBuffer->Write(nValue)) );
 	return 1;
 }
 
-static int ReadByte(lua_State* L)
+static int ReadByte(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
-
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
-
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
-	}
 
 	unsigned char nValue = 0;
 	unsigned int nRead = pBuffer->Read(nValue);
 
 	if( nRead == 0 )
 	{
-		Lua()->PushLong(0);
-		Lua()->PushNil();
+		LUA->PushNumber(0);
+		LUA->PushNil();
 	}
 	else
 	{
-		Lua()->PushLong(nRead);
-		Lua()->PushLong(nValue);
+		LUA->PushNumber(static_cast<double>(nRead));
+		LUA->PushNumber(static_cast<double>(nValue));
 	}
 
 	return 2;
 }
 
-static int Size(lua_State* L)
+static int Size(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
 
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
-
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
-	}
-
-	Lua()->PushLong(pBuffer->Size());
+	LUA->PushNumber(static_cast<double>(pBuffer->Size()));
 	return 1;
 }
 
-static int Tell(lua_State* L)
+static int Tell(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
 
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
-
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
-	}
-
-	Lua()->PushLong(pBuffer->Tell());
+	LUA->PushNumber(static_cast<double>(pBuffer->Tell()));
 	return 1;
 }
 
-static int Seek(lua_State* L)
+static int Seek(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
 
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
+	LUA->CheckType(2, GarrysMod::Lua::Type::NUMBER);
+	LUA->CheckType(3, GarrysMod::Lua::Type::NUMBER);
 
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-	Lua()->CheckType(2, GLua::TYPE_NUMBER);
-	Lua()->CheckType(3, GLua::TYPE_NUMBER);
+	unsigned int nPos = static_cast<unsigned int>(LUA->GetNumber(2));
+	unsigned int nMethod = static_cast<unsigned int>(LUA->GetNumber(3));
 
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
-	}
-
-	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
-		return 0;
-	unsigned int nPos = Lua()->GetInteger(2);
-
-	if( Lua()->GetType(3) != GLua::TYPE_NUMBER )
-		return 0;
-	unsigned int nMethod = Lua()->GetInteger(3);
-
-	Lua()->Push( pBuffer->Seek(nPos, nMethod) );
+	LUA->PushNumber( static_cast<double>(pBuffer->Seek(nPos, nMethod)) );
 	return 1;
 }
 
-static int EOB(lua_State* L)
+static int EOB(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
 
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
-
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
-	}
-
-	Lua()->Push( pBuffer->EOB() );
+	LUA->PushBool( pBuffer->EOB() );
 	return 1;
 }
 
-static int Empty(lua_State* L)
+static int Empty(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
 
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
-
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
-	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
-	}
-
-	Lua()->Push( pBuffer->Empty() );
+	LUA->PushBool( pBuffer->Empty() );
 	return 1;
 }
 
-static int Clear(lua_State* L)
+static int Clear(lua_State *state)
 {
-	// SCOPED_LOCK(g_pSockMgr->Mutex());
-	if( !L )
+	CGLSockBuffer* pBuffer = CheckBuffer(state, 1);
+	if( !pBuffer )
 		return 0;
 
-#if defined(_DEBUG)
-	Lua()->Msg("%s()\n", __FUNCTION__);
-#endif
+	LUA->CheckType(2, GarrysMod::Lua::Type::NUMBER);
 
-	Lua()->CheckType(1, GLSOCKBUFFER_TYPE);
-	Lua()->CheckType(2, GLua::TYPE_NUMBER);
-	Lua()->CheckType(3, GLua::TYPE_NUMBER);
+	unsigned int nPos = 0;
+	unsigned int cSize = static_cast<unsigned int>(LUA->GetNumber(2));
 
-	CGLSockBuffer* pBuffer = reinterpret_cast<CGLSockBuffer*>( Lua()->GetUserData(1) );
-	if( !g_pBufferMgr->ValidHandle(pBuffer) )
+	if( LUA->Top() >= 3 )
 	{
-		Lua()->LuaError("Invalid buffer handle", 1);
-		return 0;
+		LUA->CheckType(3, GarrysMod::Lua::Type::NUMBER);
+		nPos = static_cast<unsigned int>(LUA->GetNumber(3));
 	}
 
-	if( Lua()->GetType(2) != GLua::TYPE_NUMBER )
-		return 0;
-	unsigned int nPos = Lua()->GetInteger(2);
-
-	if( Lua()->GetType(3) != GLua::TYPE_NUMBER )
-		return 0;
-	unsigned int cSize = Lua()->GetInteger(3);
-
-	Lua()->Push( pBuffer->Clear(nPos, cSize) );
+	LUA->PushBool( pBuffer->Clear(nPos, cSize) );
 
 	return 1;
 }
 
-void Startup( lua_State* L )
+void Startup( lua_State *state )
 {
-	CAutoUnRef MetaTable = Lua()->GetMetaTable(GLSOCKBUFFER_NAME, GLSOCKBUFFER_TYPE);
+	LUA->CreateMetaTableType(GLSOCKBUFFER_NAME, GLSOCKBUFFER_TYPE);
+	CAutoUnRef Metatable(state);
 	{
-		CAutoUnRef Index = Lua()->GetNewTable();
+		#define SetMember(k, v) LUA->PushString(k); LUA->PushCFunction(v); LUA->SetTable(-3);
 
-		Index->SetMember("Write", GLSockBuffer::Write);
-		Index->SetMember("Read", GLSockBuffer::Read);
+		Metatable.Push();
+		LUA->PushString("__functions");
+		LUA->CreateTable();
+		{
+			SetMember("Write", GLSockBuffer::Write);
+			SetMember("Read", GLSockBuffer::Read);
 
-		Index->SetMember("WriteString", GLSockBuffer::WriteString);
-		Index->SetMember("ReadString", GLSockBuffer::ReadString);
-		Index->SetMember("WriteDouble", GLSockBuffer::WriteDouble);
-		Index->SetMember("ReadDouble", GLSockBuffer::ReadDouble);
-		Index->SetMember("WriteFloat", GLSockBuffer::WriteFloat);
-		Index->SetMember("ReadFloat", GLSockBuffer::ReadFloat);
-		Index->SetMember("WriteLong", GLSockBuffer::WriteLong);
-		Index->SetMember("ReadLong", GLSockBuffer::ReadLong);
-		Index->SetMember("WriteShort", GLSockBuffer::WriteShort);
-		Index->SetMember("ReadShort", GLSockBuffer::ReadShort);
-		Index->SetMember("WriteByte", GLSockBuffer::WriteByte);
-		Index->SetMember("ReadByte", GLSockBuffer::ReadByte);
+			SetMember("WriteString", GLSockBuffer::WriteString);
+			SetMember("ReadString", GLSockBuffer::ReadString);
+			SetMember("WriteDouble", GLSockBuffer::WriteDouble);
+			SetMember("ReadDouble", GLSockBuffer::ReadDouble);
+			SetMember("WriteFloat", GLSockBuffer::WriteFloat);
+			SetMember("ReadFloat", GLSockBuffer::ReadFloat);
+			SetMember("WriteLong", GLSockBuffer::WriteLong);
+			SetMember("ReadLong", GLSockBuffer::ReadLong);
+			SetMember("WriteShort", GLSockBuffer::WriteShort);
+			SetMember("ReadShort", GLSockBuffer::ReadShort);
+			SetMember("WriteByte", GLSockBuffer::WriteByte);
+			SetMember("ReadByte", GLSockBuffer::ReadByte);
 
-		Index->SetMember("Size", GLSockBuffer::Size);
-		Index->SetMember("Tell", GLSockBuffer::Tell);
-		Index->SetMember("Seek", GLSockBuffer::Seek);
-		Index->SetMember("EOB", GLSockBuffer::EOB);
-		Index->SetMember("Empty", GLSockBuffer::Empty);
-		Index->SetMember("Clear", GLSockBuffer::Clear);
+			SetMember("Size", GLSockBuffer::Size);
+			SetMember("Tell", GLSockBuffer::Tell);
+			SetMember("Seek", GLSockBuffer::Seek);
+			SetMember("EOB", GLSockBuffer::EOB);
+			SetMember("Empty", GLSockBuffer::Empty);
+			SetMember("Clear", GLSockBuffer::Clear);
+		}
+		LUA->RawSet(-3);
 
-		MetaTable->SetMember("__gc", GLSockBuffer::__delete);
-		MetaTable->SetMember("__eq", GLSockBuffer::__eq);
-		MetaTable->SetMember("__tostring", GLSockBuffer::__tostring);
-		MetaTable->SetMember("__index", GLSockBuffer::__index);
-		MetaTable->SetMember("__newindex", GLSockBuffer::__newindex);
-		MetaTable->SetMember("__functions", Index);
+		SetMember("__gc", GLSockBuffer::__delete);
+		SetMember("__eq", GLSockBuffer::__eq);
+		SetMember("__tostring", GLSockBuffer::__tostring);
+		SetMember("__index", GLSockBuffer::__index);
+		SetMember("__newindex", GLSockBuffer::__newindex);
+
+		#undef SetMember
 	}
-
-	Lua()->SetGlobal("GLSockBuffer", GLSockBuffer::__new);
+	
+	LuaSetGlobal(state, "GLSockBuffer", GLSockBuffer::__new);
 
 	// Seek Methods
-	Lua()->SetGlobal("GLSOCKBUFFER_SEEK_SET", (float)SOCKBUFFER_SEEK_SET);
-	Lua()->SetGlobal("GLSOCKBUFFER_SEEK_CUR", (float)SOCKBUFFER_SEEK_CUR);
-	Lua()->SetGlobal("GLSOCKBUFFER_SEEK_END", (float)SOCKBUFFER_SEEK_END);
+	LuaSetGlobal(state, "GLSOCKBUFFER_SEEK_SET", SOCKBUFFER_SEEK_SET);
+	LuaSetGlobal(state, "GLSOCKBUFFER_SEEK_CUR", SOCKBUFFER_SEEK_CUR);
+	LuaSetGlobal(state, "GLSOCKBUFFER_SEEK_END", SOCKBUFFER_SEEK_END);
 }
 
-void Cleanup( lua_State* L )
+void Cleanup( lua_State *state )
 {
 }
 

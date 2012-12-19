@@ -1,5 +1,7 @@
 #include "Common.h"
 #include "GLSock.h"
+#include "BindingGLSock.h"
+#include "BindingGLSockBuffer.h"
 
 namespace GLSock {
 
@@ -39,6 +41,147 @@ boost::asio::ip::tcp::endpoint& CEndpoint::ToTCP()
 boost::asio::ip::udp::endpoint& CEndpoint::ToUDP()
 {
 	return m_UDP;
+}
+
+void CGLSock::CallbackBind(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State *state)
+{
+	pHandle->Reference();
+
+	LUA->ReferencePush(Callback);
+	PushSocket(state, pHandle);
+	LUA->PushNumber(static_cast<double>(iErrorMsg));
+	LUA->Call(2, 0);
+
+	LUA->ReferenceFree(Callback);
+
+	pHandle->Unreference();
+}
+
+void CGLSock::CallbackListen(Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State *state)
+{
+	pHandle->Reference();
+
+	LUA->ReferencePush(Callback);
+	PushSocket(state, pHandle);
+	LUA->PushNumber(static_cast<double>(iErrorMsg));
+	LUA->Call(2, 0);
+
+	LUA->ReferenceFree(Callback);
+
+	pHandle->Unreference();
+}
+
+void CGLSock::CallbackAccept(Callback_t Callback, CGLSock* pHandle, CGLSock* pSock, int iErrorMsg, lua_State *state)
+{
+	pHandle->Reference();
+
+	LUA->ReferencePush(Callback);
+	PushSocket(state, pHandle);
+	if(!pSock)
+	{
+		LUA->PushNil();
+	}
+	else
+	{
+		pSock->Reference();
+		PushSocket(state, pSock);
+	}
+
+	LUA->PushNumber(static_cast<double>(iErrorMsg));
+	LUA->Call(3, 0);
+
+	LUA->ReferenceFree(Callback);
+
+	//pHandle->Unreference();
+}
+
+void CGLSock::CallbackSend( Callback_t Callback, CGLSock* pHandle, unsigned int cubBytes, int iErrorMsg, lua_State *state )
+{
+	pHandle->Reference();
+
+	LUA->ReferencePush(Callback);
+	PushSocket(state, pHandle);
+	LUA->PushNumber(static_cast<double>(cubBytes));
+	LUA->PushNumber(static_cast<double>(iErrorMsg));
+	LUA->Call(3, 0);
+
+	LUA->ReferenceFree(Callback);
+
+	pHandle->Unreference();
+}
+
+void CGLSock::CallbackReadFrom( Callback_t Callback, 
+	CGLSock* pHandle, 
+	std::string strSender, 
+	unsigned short usPort, 
+	GLSockBuffer::CGLSockBuffer* pBuffer,
+	int iErrorMsg,
+	lua_State *state)
+{
+	pHandle->Reference();
+
+	LUA->ReferencePush(Callback);
+	PushSocket(state, pHandle);
+
+	if( !pBuffer )
+	{
+		LUA->PushNil();
+		LUA->PushNil();
+		LUA->PushNil();
+	}
+	else
+	{
+		LUA->PushString(strSender.c_str());
+		LUA->PushNumber(static_cast<double>(usPort));
+		pBuffer->Reference();
+
+		GLSockBuffer::PushBuffer(state, pBuffer);
+	}
+	LUA->PushNumber(static_cast<double>(iErrorMsg));
+	LUA->Call(5, 0);
+
+	LUA->ReferenceFree(Callback);
+
+	pHandle->Unreference();
+}
+
+void CGLSock::CallbackConnect( Callback_t Callback, CGLSock* pHandle, int iErrorMsg, lua_State *state )
+{
+	pHandle->Reference();
+
+	LUA->ReferencePush(Callback);
+	PushSocket(state, pHandle);
+	LUA->PushNumber(static_cast<double>(iErrorMsg));
+
+	LUA->Call(2, 0);
+
+	LUA->ReferenceFree(Callback);
+
+	pHandle->Unreference();
+}
+
+void CGLSock::CallbackRead( Callback_t Callback, CGLSock* pHandle, GLSockBuffer::CGLSockBuffer* pBuffer, int iErrorMsg, lua_State *state)
+{
+	pHandle->Reference();
+
+	LUA->ReferencePush(Callback);
+	PushSocket(state, pHandle);
+	if( !pBuffer )
+	{
+		LUA->PushNil();
+	}
+	else
+	{
+		pBuffer->Reference();
+		PushBuffer(state, pBuffer);
+	}
+
+	LUA->PushNumber(static_cast<double>(iErrorMsg));
+	LUA->Call(3, 0);
+
+	LUA->ReferenceFree(Callback);
+
+	pHandle->Unreference();
 }
 
 bool CGLSock::Bind( CEndpoint& Endpoint, Callback_t Callback )

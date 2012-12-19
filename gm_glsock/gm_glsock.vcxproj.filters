@@ -9,8 +9,8 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Header Files\GModule">
-      <UniqueIdentifier>{46b42edc-2acd-40c2-bce4-ac4435768a8c}</UniqueIdentifier>
+    <Filter Include="Header Files\Lua">
+      <UniqueIdentifier>{5320fe20-b54d-4440-9337-1e79f5bac6f5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -61,21 +61,6 @@
     <ClInclude Include="SockMgr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GMLuaModule.h">
-      <Filter>Header Files\GModule</Filter>
-    </ClInclude>
-    <ClInclude Include="ILuaInterface.h">
-      <Filter>Header Files\GModule</Filter>
-    </ClInclude>
-    <ClInclude Include="ILuaModuleManager.h">
-      <Filter>Header Files\GModule</Filter>
-    </ClInclude>
-    <ClInclude Include="ILuaObject.h">
-      <Filter>Header Files\GModule</Filter>
-    </ClInclude>
-    <ClInclude Include="ILuaShared.h">
-      <Filter>Header Files\GModule</Filter>
-    </ClInclude>
     <ClInclude Include="BindingGLSock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -93,6 +78,21 @@
     </ClInclude>
     <ClInclude Include="Common.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Lua\Interface.h">
+      <Filter>Header Files\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="Lua\LuaBase.h">
+      <Filter>Header Files\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="Lua\Types.h">
+      <Filter>Header Files\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="Lua\UserData.h">
+      <Filter>Header Files\Lua</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

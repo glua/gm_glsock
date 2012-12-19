@@ -147,10 +147,8 @@ GLSockBuffer.Write(data)
         
 GLSockBuffer.Read(count)
     Description:
-        Reads the count of bytes and results string. Keep in mind that u can
-        not read data with zeros as it will terminate the string due the 
-        limitation of the lua interfaces exposed from Garry's Mod. It is more
-        practicable to use the specific function.
+        Read until the count has been reached, if theres not enough data
+        it will eventually return less.
     Returns:
         count, string
 
@@ -261,7 +259,7 @@ GLSockBuffer.Empty()
     Returns:
         boolean
         
-GLSockBuffer.Clear(position, count)
+GLSockBuffer.Clear(count [, position = 0])
     Description:
         Erases the content from position until to count.
     Returns:
