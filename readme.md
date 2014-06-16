@@ -1,5 +1,5 @@
 # GLSock v1.2.1
-#### Credits: Morten, Python1320, CapsAdmin
+#### Credits: Morten, Python1320, CapsAdmin, JamieH
 
 Also big thanks to Morten for a few fixes and the first initial Linux build.
 
