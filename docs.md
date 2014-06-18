@@ -3,6 +3,7 @@
 ##GLSock
 
 <code>GLSock(type)</code>
+    
     Description:
         Creates a new socket.
     Types:
@@ -13,6 +14,7 @@
         *Userdata*
 
 <code>GLSock.Bind(host, port, callback(handle, errno))</code>
+    
     Description:
         Bindes the socket to the specific host and port
         The host has to be a ip, it will not resolve.
@@ -20,6 +22,7 @@
         *boolean*
 
 <code>GLSock.Listen(backlog, callback(handle, errno))</code>
+    
     Description:
         Sets the socket into listen mode.
         
