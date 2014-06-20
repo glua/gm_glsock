@@ -1,4 +1,5 @@
-# GLSock v1.2.1
+![alt text](https://github.com/JamieH/gm_glsock/raw/master/images/logo.png "Logo")
+
 #### Credits: Morten, Python1320, CapsAdmin, JamieH
 
 Also big thanks to Morten for a few fixes and the first initial Linux build.
