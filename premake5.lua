@@ -2,7 +2,7 @@ dofile("../../common.lua")
 
 RequireDefaultlibs()
 
-SOLUTION        "gm_glsock"
+SOLUTION        "glsock"
 
 targetdir       "bin"
 INCLUDES        "source_sdk"
