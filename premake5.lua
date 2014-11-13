@@ -9,6 +9,10 @@ INCLUDES        "source_sdk"
 INCLUDES        "gmod_sdk"
 defines         {"NDEBUG"}
 
+configuration "windows"
+  includedirs{"../../boost/includes"}
+  libdirs{"../../boost/libs"}
+
 WINDOWS()
 LINUX()
 
